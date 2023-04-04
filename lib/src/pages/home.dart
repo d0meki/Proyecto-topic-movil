@@ -102,15 +102,17 @@ class _HomePageState extends State<HomePage> {
                                   child: Column(
                                     children: [
                                       const SizedBox(
-                                        height: 100,
+                                        height: 50,
                                       ),
-                                      Text(
-                                        profile.name,
-                                        style: const TextStyle(
-                                          color:
-                                              Color.fromRGBO(39, 105, 171, 1),
-                                          fontFamily: 'Nunito',
-                                          fontSize: 37,
+                                      Center(
+                                        child: Text(
+                                          profile.name,
+                                          style: const TextStyle(
+                                            color:
+                                                Color.fromRGBO(39, 105, 171, 1),
+                                            fontFamily: 'Nunito',
+                                            fontSize: 37,
+                                          ),
                                         ),
                                       ),
                                       const SizedBox(
