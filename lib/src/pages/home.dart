@@ -27,8 +27,8 @@ class _HomePageState extends State<HomePage> {
           decoration: const BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                Color.fromRGBO(10, 18, 56, 1),
-                Color.fromRGBO(65, 171, 39, 1),
+                Color.fromRGBO(4, 9, 35, 1),
+                Color.fromRGBO(39, 105, 171, 1),
               ],
               begin: FractionalOffset.bottomCenter,
               end: FractionalOffset.topCenter,
@@ -107,7 +107,8 @@ class _HomePageState extends State<HomePage> {
                                       Text(
                                         profile.name,
                                         style: const TextStyle(
-                                          color: Color.fromRGBO(39, 171, 65, 1),
+                                          color:
+                                              Color.fromRGBO(39, 105, 171, 1),
                                           fontFamily: 'Nunito',
                                           fontSize: 37,
                                         ),

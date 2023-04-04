@@ -37,7 +37,7 @@ class _CamaraAppState extends State<CamaraApp> {
     var luxandService = LuxandService();
     late List<DataRecognition> respuesta;
     return Scaffold(
-      appBar: AppBar(title: const Text('Tomar una foto')),
+      appBar: AppBar(title: const Text('Take a photo')),
       body: FutureBuilder<void>(
           future: _initializeCameraCtrlFuture,
           builder: (context, snapshot) {
@@ -70,7 +70,7 @@ class _CamaraAppState extends State<CamaraApp> {
                     context: context,
                     builder: ((context) => AlertDialog(
                           title: const Text('Warnning'),
-                          content: const Text('Usuario No Registrado'),
+                          content: const Text('Unregistered user'),
                           actions: [
                             TextButton(
                                 onPressed: () {
