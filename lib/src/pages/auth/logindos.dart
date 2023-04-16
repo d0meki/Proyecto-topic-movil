@@ -58,12 +58,12 @@ class _LoginDosState extends State<LoginDos> {
                       width: double.infinity,
                       child: ElevatedButton(
                         onPressed: () async {
-                          await availableCameras().then((value) =>
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) =>
-                                          CamaraApp(cameras: value))));
+                          // await availableCameras().then((value) =>
+                          //     Navigator.push(
+                          //         context,
+                          //         MaterialPageRoute(
+                          //             builder: (context) =>
+                          //                 CamaraApp(cameras: value))));
                         },
                         style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF04A5ED),
@@ -74,6 +74,48 @@ class _LoginDosState extends State<LoginDos> {
                               vertical: 14.0, horizontal: 24.0),
                           child: Text(
                             "Authenticate",
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
+                      ),
+                    ),
+                     Container(
+                      margin: const EdgeInsets.symmetric(vertical: 15.0),
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          Navigator.pushNamed(context, "login_pin");
+                        },
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF04A5ED),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30.0))),
+                        child: const Padding(
+                          padding: EdgeInsets.symmetric(
+                              vertical: 14.0, horizontal: 24.0),
+                          child: Text(
+                            "PIN",
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
+                      ),
+                    ),
+                    Container(
+                      margin: const EdgeInsets.symmetric(vertical: 15.0),
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          // Navigator.pushNamed(context, "register");
+                        },
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF04A5ED),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30.0))),
+                        child: const Padding(
+                          padding: EdgeInsets.symmetric(
+                              vertical: 14.0, horizontal: 24.0),
+                          child: Text(
+                            "Register",
                             style: TextStyle(color: Colors.white),
                           ),
                         ),

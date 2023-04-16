@@ -12,7 +12,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   var luxandServise = LuxandService();
-  String uuid = '65ef1a9b-d0aa-11ed-86a0-0242ac160002';
+  // String uuid = '65ef1a9b-d0aa-11ed-86a0-0242ac160002';
   late Profile profile;
 
   @override
