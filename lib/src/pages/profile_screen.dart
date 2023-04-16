@@ -90,13 +90,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
           return const Center(child: CircularProgressIndicator());
         },
       )),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.pushNamed(context, "reclamo");
-        },
-        label: const Text('Hacer un Reclamo'),
-        icon: const Icon(Icons.thumb_up),
-        backgroundColor: Colors.pink,
+
+      floatingActionButton: Column(
+         mainAxisAlignment: MainAxisAlignment.end,
+         children: [
+            FloatingActionButton.extended(
+          onPressed: () {
+            Navigator.pushNamed(context, "reclamo");
+          },
+          label: const Text('Hacer un Reclamo'),
+          icon: const Icon(Icons.thumb_up),
+          backgroundColor: Colors.pink,
+        ),
+        const SizedBox(height: 5,),
+        FloatingActionButton.extended(
+          onPressed: () {
+            Navigator.pushNamed(context, "lista_reclamos");
+          },
+          label: const Text('Ver Reclamos'),
+          icon: const Icon(Icons.remove_red_eye),
+          backgroundColor: Colors.pink,
+        ),
+         ],
+        
       ),
     );
   }

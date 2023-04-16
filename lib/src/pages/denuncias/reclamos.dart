@@ -97,7 +97,7 @@ class _ReclamoState extends State<Reclamo> {
                 actions: [
                   TextButton(
                       onPressed: () {
-                        Navigator.pushNamed(context, "lista");
+                        Navigator.pushNamed(context, "lista_reclamos");
                       },
                       child: const Text('Yes'))
                 ],
