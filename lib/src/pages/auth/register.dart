@@ -255,7 +255,7 @@ class _RegisterState extends State<Register> {
                         const Icon(Icons.assignment_outlined),
                         "Nombre y apellido",
                         TextInputType.text,
-                        readOnly: true, validateTextFormField: (String value) {
+                        validateTextFormField: (String value) {
                       if (value.isEmpty) return "Escriba su nombre por favor";
                       return null;
                     }),

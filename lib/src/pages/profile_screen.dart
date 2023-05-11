@@ -95,6 +95,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
          mainAxisAlignment: MainAxisAlignment.end,
          children: [
             FloatingActionButton.extended(
+              heroTag: 1,
           onPressed: () {
             Navigator.pushNamed(context, "reclamo");
           },
@@ -104,6 +105,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
         const SizedBox(height: 5,),
         FloatingActionButton.extended(
+          heroTag: 2,
           onPressed: () {
             Navigator.pushNamed(context, "lista_reclamos");
           },

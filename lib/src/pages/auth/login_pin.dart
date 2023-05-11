@@ -1,3 +1,7 @@
+// ignore_for_file: use_build_context_synchronously
+
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:topicos_proy/src/Controllers/usuario_controller.dart';
 
@@ -11,8 +15,25 @@ class LoginPin extends StatefulWidget {
 class _LoginPinState extends State<LoginPin> {
   var selectedindex = 0;
   String code = '';
+  String msg = '';
+  int seconds = 0;
+  int intentos = 0;
+  bool habilitado = true;
   var firebaseUsuario = FirebaseUsuario();
   // late usaurio;
+  void _startCountDwn(){
+    Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (seconds > 0) {
+          setState(() {
+            seconds--;
+          });
+      }else{
+        habilitado = true;
+        timer.cancel();
+      }
+     });
+  }
+
   @override
   Widget build(BuildContext context) {
     TextStyle textStyle = TextStyle(
@@ -31,6 +52,7 @@ class _LoginPinState extends State<LoginPin> {
           width: width,
           color: Colors.black.withBlue(40),
           alignment: Alignment.center,
+          child: Text('$msg time: $seconds intentos: $intentos', style: TextStyle(color: Colors.white,fontSize: 20),),
         ),
         Container(
           height: height * 0.85,
@@ -186,40 +208,68 @@ class _LoginPinState extends State<LoginPin> {
                     Expanded(
                       flex: 1,
                       child: TextButton(
-                          onPressed: () async {
+                          onPressed:habilitado? () async {
                             try {
-                              final usaurio =
-                                  await firebaseUsuario.getUserWhitPin(code);
-                              print(usaurio['uuid']);
-                              if (usaurio != null) {
-                                // ignore: use_build_context_synchronously
-                                Navigator.pushNamed(context, 'profile',
-                                    arguments: usaurio['uuid']);
-                              } else {
-                                showDialog(
-                                    context: context,
-                                    builder: ((context) => AlertDialog(
-                                          title: const Text('Warnning'),
-                                          content:
-                                              const Text('Unregistered user'),
-                                          actions: [
-                                            TextButton(
-                                                onPressed: () {
-                                                  Navigator.of(context)
-                                                      .pushNamedAndRemoveUntil(
-                                                          'login',
-                                                          (Route<dynamic>
-                                                                  route) =>
-                                                              false);
-                                                },
-                                                child: const Text('Yes'))
-                                          ],
-                                        )));
-                              }
+                              final respuesta =
+                                  await firebaseUsuario.login(code);
+
+                                  print(respuesta['status']);
+                                  if (respuesta['status']) {
+                                    print('Redirigir al PErfil');
+                                     intentos = 0;
+                                      msg = 'Pin incorrecto';
+                                      seconds = 0;
+                                      setState(() {
+                                        
+                                      });
+                                  }else{
+                                    if (respuesta['intentos']<3) {
+                                      intentos = respuesta['intentos'];
+                                      msg = 'Pin incorrecto';
+                                      setState(() {
+                                        
+                                      });
+                                    }else{
+                                      intentos = 0;
+                                      intentos = respuesta['intentos'];
+                                      msg = 'Pin incorrecto';
+                                      seconds = respuesta['seconds'];
+                                      habilitado = false;
+                                      _startCountDwn();
+                                    }
+                                  }
+                              // print(usaurio['uuid']);
+
+
+                              // if (usaurio != null) {
+                              //   // ignore: use_build_context_synchronously
+                              //   Navigator.pushNamed(context, 'profile',
+                              //       arguments: usaurio['uuid']);
+                              // } else {
+                              //   showDialog(
+                              //       context: context,
+                              //       builder: ((context) => AlertDialog(
+                              //             title: const Text('Warnning'),
+                              //             content:
+                              //                 const Text('Unregistered user'),
+                              //             actions: [
+                              //               TextButton(
+                              //                   onPressed: () {
+                              //                     Navigator.of(context)
+                              //                         .pushNamedAndRemoveUntil(
+                              //                             'login',
+                              //                             (Route<dynamic>
+                              //                                     route) =>
+                              //                                 false);
+                              //                   },
+                              //                   child: const Text('Yes'))
+                              //             ],
+                              //           )));
+                              // }
                             } catch (e) {
                               print(e);
                             }
-                          },
+                          }:null,
                           child: Icon(Icons.check,
                               color: Colors.black.withBlue(40), size: 30)),
                     ),
