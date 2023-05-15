@@ -1,79 +1,22 @@
-// ignore_for_file: use_build_context_synchronously
 
 import 'package:flutter/material.dart';
 import 'package:topicos_proy/src/Controllers/usuario_controller.dart';
-import 'package:topicos_proy/src/widget/textform.dart';
 import 'package:topicos_proy/src/widget/widgets.dart';
-
-class Login extends StatelessWidget {
-  final TextEditingController _mailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
+class ChangePassword extends StatelessWidget {
+    final TextEditingController _mailController = TextEditingController();
+  final TextEditingController _lastPasswordController = TextEditingController();
   final TextEditingController _newPasswordController = TextEditingController();
-
   final _formKey = GlobalKey<FormState>();
   AuthService authService = AuthService();
-  Login({super.key});
+   ChangePassword({super.key});
 
   @override
   Widget build(BuildContext context) {
-    newPassword() async {
-      final formUnicKey = GlobalKey<FormState>();
-      showDialog(
-          barrierDismissible: false,
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text('New Password'),
-              content: Form(
-                key: formUnicKey,
-                child: CustomTextFormField(
-                    _newPasswordController,
-                    const Icon(Icons.lock),
-                    "New Password",
-                    TextInputType.visiblePassword,
-                    hideText: true, validateTextFormField: (String value) {
-                  if (value.isEmpty)
-                    return "Escriba su nueva password por favor";
-                  return null;
-                }),
-              ),
-              actions: [
-                ElevatedButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Cancelar'),
-                ),
-                ElevatedButton(
-                  onPressed: () async {
-                    if (formUnicKey.currentState!.validate()) {
-                      showDialog(
-                          context: context,
-                          builder: (context) {
-                            return const Center(
-                                child: CircularProgressIndicator());
-                          });
-                      Map<String, dynamic> changed = await authService
-                          .changePassword(_newPasswordController.text);
-                      Navigator.pop(context);
-                      Navigator.pop(context);
-                        Widgets.alertSnackbar(context, changed['msg']);
-                    }
-                  },
-                  child: const Text('Cambiar'),
-                ),
-              ],
-            );
-          });
-    }
-
     return Scaffold(
-      resizeToAvoidBottomInset: false,
+       resizeToAvoidBottomInset: false,
       backgroundColor: const Color(0XFF3C3E52),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 24.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Center(
+      body: Padding(padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 24.0),child: Column(children: [
+        const Center(
               child: Text(
                 "Login",
                 style: TextStyle(
@@ -136,19 +79,39 @@ class Login extends StatelessWidget {
                           Padding(
                             padding: const EdgeInsets.only(bottom: 5.0),
                             child: TextFormField(
-                                controller: _passwordController,
+                                controller: _lastPasswordController,
                                 style: const TextStyle(color: Colors.white),
                                 decoration: const InputDecoration(
                                     iconColor: Colors.white,
                                     labelStyle: TextStyle(color: Colors.white),
                                     icon: Icon(Icons.password),
-                                    labelText: "Password"),
+                                    labelText: "Last Password"),
                                 keyboardType: TextInputType.visiblePassword,
                                 obscureText: true,
                                 readOnly: false,
                                 validator: (String? value) {
                                   if (value!.isEmpty) {
-                                    return "Escriba su password por favor";
+                                    return "Escriba su password actual por favor";
+                                  }
+                                  return null;
+                                }),
+                          ),
+                           Padding(
+                            padding: const EdgeInsets.only(bottom: 5.0),
+                            child: TextFormField(
+                                controller: _newPasswordController,
+                                style: const TextStyle(color: Colors.white),
+                                decoration: const InputDecoration(
+                                    iconColor: Colors.white,
+                                    labelStyle: TextStyle(color: Colors.white),
+                                    icon: Icon(Icons.password),
+                                    labelText: "New Password"),
+                                keyboardType: TextInputType.visiblePassword,
+                                obscureText: true,
+                                readOnly: false,
+                                validator: (String? value) {
+                                  if (value!.isEmpty) {
+                                    return "Escriba su nuevo password por favor";
                                   }
                                   return null;
                                 }),
@@ -168,22 +131,7 @@ class Login extends StatelessWidget {
                                         return const Center(
                                             child: CircularProgressIndicator());
                                       });
-                                  final respuesta = await authService.login(
-                                      _mailController.text,
-                                      _passwordController.text);
-                                  Navigator.pop(context);
-                                  if (respuesta['status']) {
-                                    Widgets.alertSnackbar(
-                                        context, "Logeado ${respuesta['msg']}");
-                                    Navigator.pushNamed(context, 'home');
-                                  } else {
-                                    Widgets.alertSnackbar(
-                                        context, respuesta['msg']);
-                                    if (respuesta['reason'] ==
-                                        'changePassword') {
-                                      newPassword();
-                                    }
-                                  }
+                                
                                 } else {
                                   Widgets.alertSnackbar(
                                       context, 'Formulario incompleto');
@@ -198,7 +146,7 @@ class Login extends StatelessWidget {
                                 padding: EdgeInsets.symmetric(
                                     vertical: 14.0, horizontal: 24.0),
                                 child: Text(
-                                  "Login",
+                                  "Change Password",
                                   style: TextStyle(color: Colors.white),
                                 ),
                               ),
@@ -206,33 +154,10 @@ class Login extends StatelessWidget {
                           ),
                         ],
                       )),
-                  Container(
-                    margin: const EdgeInsets.symmetric(vertical: 5.0),
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () async {
-                        Navigator.pushNamed(context, "register");
-                      },
-                      style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF04A5ED),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30.0))),
-                      child: const Padding(
-                        padding: EdgeInsets.symmetric(
-                            vertical: 14.0, horizontal: 24.0),
-                        child: Text(
-                          "Register",
-                          style: TextStyle(color: Colors.white),
-                        ),
-                      ),
-                    ),
-                  )
                 ],
               ),
             )
-          ],
-        ),
-      ),
+      ],),),
     );
   }
 }

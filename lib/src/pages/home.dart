@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:topicos_proy/src/Controllers/usuario_controller.dart';
 
 class HomePage extends StatelessWidget {
-  FirebaseUsuario firebaseUsuario = FirebaseUsuario();
+  AuthService authService = AuthService();
   HomePage({Key? key}) : super(key: key);
   @override
   Widget build(BuildContext context) {
@@ -15,7 +15,7 @@ class HomePage extends StatelessWidget {
             icon: const Icon(Icons.logout_sharp),
             tooltip: "LogOut",
             onPressed: ()async {
-              final res = await firebaseUsuario.signOut();
+              final res = await authService.signOut();
               if (res) {
                  Navigator.of(context).pushNamedAndRemoveUntil(
                   'login', (Route<dynamic> route) => false);

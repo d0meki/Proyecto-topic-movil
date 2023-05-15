@@ -5,7 +5,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:topicos_proy/src/models/datarecognition.dart';
 
-class FirebaseUsuario {
+class AuthService {
   //INI PROPIEDADES DEL AUTH
   final baseUrl = 'https://api.luxand.cloud';
   final token = 'd3b1e27cd4c544b19e48a65125ca0112';
@@ -15,7 +15,7 @@ class FirebaseUsuario {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   CollectionReference get users => _users;
 //FIN PROPIEDADES DEL AUTH
-  FirebaseUsuario();
+  AuthService();
 
 //FIN METODOS AUTH
   Future<dynamic> login(email, password) async {
@@ -24,11 +24,12 @@ class FirebaseUsuario {
       //INI VALIDACION EMAIL VERIFICADO
       UserCredential userCredential = await _firebaseAuth
           .signInWithEmailAndPassword(email: email, password: password);
-      User? user = FirebaseAuth.instance.currentUser;
+      User? user = _firebaseAuth.currentUser;
       if (user != null && !user.emailVerified) {
         await user.sendEmailVerification();
         respuesta = {
           "status": false,
+          "reason": "verifyEmail",
           "msg": "Email no verificado revise su correo"
         };
         return respuesta;
@@ -41,6 +42,7 @@ class FirebaseUsuario {
       if (!dataUsuario['changePassword']) {
         respuesta = {
           "status": false,
+          "reason": "changePassword",
           "msg": "Por seguridad debe cambiar su contraseña"
         };
         return respuesta;
@@ -50,7 +52,6 @@ class FirebaseUsuario {
       if (dataUsuario['bloqueado']) {
         //INI SI ESTA BLOQUEADO Y TERMINÓ SU TIEMPO DE BLOQUEO, SE DESBLOQUEA AL USUARIO
         if (dataUsuario['timer'].seconds <= Timestamp.now().seconds) {
-          
           Map<String, dynamic> desbloquear = {
             'bloqueado': false,
             'intentos': 0
@@ -61,27 +62,30 @@ class FirebaseUsuario {
           dataUsuario = documentSnapshot.docs[0].data();
           respuesta = {
             "status": true,
+            "reason": "login",
             "msg":
                 "uid: ${userCredential.user!.uid}, email: ${userCredential.user!.email}"
           };
           return respuesta;
-        //FIN SI ESTA BLOQUEADO Y TERMINÓ SU TIEMPO DE BLOQUEO, SE DESBLOQUEA AL USUARIO  
+          //FIN SI ESTA BLOQUEADO Y TERMINÓ SU TIEMPO DE BLOQUEO, SE DESBLOQUEA AL USUARIO
         } else {
           //INI SI SU TIEMPO DE BLOQUEO SIGUE VIGENTE, RETORNAMOS EL TIEMPO RESTANTE PARA SU DESBLOQUEO
           int diferencia =
               dataUsuario['timer'].seconds - Timestamp.now().seconds;
           respuesta = {
             "status": false,
+            "reason": "locked",
             "msg": "bloqueado por $diferencia segundos"
           };
           return respuesta;
-           //FIN SI SU TIEMPO DE BLOQUEO SIGUE VIGENTE, RETORNAMOS EL TIEMPO RESTANTE PARA SU DESBLOQUEO
+          //FIN SI SU TIEMPO DE BLOQUEO SIGUE VIGENTE, RETORNAMOS EL TIEMPO RESTANTE PARA SU DESBLOQUEO
         }
-      //FIN SI ESTA BLOQUEDDO
+        //FIN SI ESTA BLOQUEDDO
       } else {
         //INI SI NO ESTÁ BLOQUEADO Y PASA TODAS LAS VALIDACIONES, EL USUARIO SE LOGEA
         respuesta = {
           "status": true,
+          "reason": "login",
           "msg":
               "uid: ${userCredential.user!.uid}, email: ${userCredential.user!.email}"
         };
@@ -91,9 +95,9 @@ class FirebaseUsuario {
     } on FirebaseAuthException catch (e) {
       //INI SI EL CORREO ES INCORRECTO
       if (e.code == 'user-not-found') {
-        respuesta = {"status": false, "msg": e.code};
+        respuesta = {"status": false, "reason": "email", "msg": e.code};
         return respuesta;
-      //FIN SI EL CORREO ES INCORRECTO
+        //FIN SI EL CORREO ES INCORRECTO
       } else if (e.code == 'wrong-password') {
         //INI SI EL PASSWORD ES INCORRECTO
         QuerySnapshot<dynamic> documentSnapshot =
@@ -105,9 +109,13 @@ class FirebaseUsuario {
             int increment = dataUsuario['intentos'] + 1;
             Map<String, dynamic> data = {'intentos': increment};
             await users.doc(documentSnapshot.docs[0].id).update(data);
-            respuesta = {'status': false, 'msg': 'wrong-password ntento Nro $increment'};
+            respuesta = {
+              'status': false,
+              "reason": "password",
+              'msg': 'wrong-password ntento Nro $increment'
+            };
             return respuesta;
-          //INI INCREMENTAMOS INTENTOS
+            //INI INCREMENTAMOS INTENTOS
           } else {
             //INI BLOQUEAMOS POR EXESO DE INTENTOS
             DateTime date = DateTime.now();
@@ -120,16 +128,17 @@ class FirebaseUsuario {
             int increment = dataUsuario['intentos'] + 1;
             respuesta = {
               'status': false,
+              "reason": "password",
               'msg': 'wrong-password ntento Nro $increment',
               'bloqueado': true
             };
             return respuesta;
-          //FIN BLOQUEAMOS POR EXESO DE INTENTOS
+            //FIN BLOQUEAMOS POR EXESO DE INTENTOS
           }
         }
-        respuesta = {"status": false, "msg": e.code};
+        respuesta = {"status": false, "reason": "other", "msg": e.code};
         return respuesta;
-         //FIN SI EL PASSWORD ES INCORRECTO
+        //FIN SI EL PASSWORD ES INCORRECTO
       }
     }
   }
@@ -192,11 +201,11 @@ class FirebaseUsuario {
         return respuesta;
       }
       //CUALQUIER OTRA EXCEPCION INCLUIDA LA DE LOS 6 CARACTERES
-       respuesta = {
+      respuesta = {
         "status": false,
         "msg": e.code,
       };
-       return respuesta;
+      return respuesta;
     } catch (e) {
       respuesta = {
         "status": false,
@@ -249,6 +258,29 @@ class FirebaseUsuario {
     }
   }
 
+  Future<dynamic> changePassword(String newPassword) async {
+    Map<String, dynamic> respuesta; 
+    try {
+      User? user = _firebaseAuth.currentUser;
+      await user?.updatePassword(newPassword);
+      QuerySnapshot<dynamic> documentSnapshot =
+            await _users.where('email', isEqualTo: user?.email).get();
+        Map<String, dynamic> data = {'changePassword': true};
+            await users.doc(documentSnapshot.docs[0].id).update(data);
+        respuesta = {
+          "status":true,
+          "msg":"Password cambiado satisfactoriamente"
+        };
+        return respuesta;
+    } on FirebaseAuthException catch (e) {
+        respuesta = {
+          "status":false,
+          "msg":'error: ${e.code}'
+        };
+        return respuesta;
+    }
+  }
+
   Future<bool> signOut() async {
     await _firebaseAuth.signOut();
     return true;
@@ -256,12 +288,12 @@ class FirebaseUsuario {
 
   //FIN METODOS AUTH
 
-
-    Future<dynamic> getUserWhitUuid(uuid) async {
+  Future<dynamic> getUserWhitUuid(uuid) async {
     QuerySnapshot<Object?> documentSnapshot =
         await users.where('uuid', isEqualTo: uuid).get();
     return documentSnapshot.docs[0];
   }
+
   Future<bool> addUser(Map<String, dynamic> data) async {
     return await _users
         .add(data)
@@ -280,7 +312,8 @@ class FirebaseUsuario {
       return "";
     }
   }
-   Future<dynamic> getUser() async {
+
+  Future<dynamic> getUser() async {
     const String uid = "zhFiV0xrj5OAx3jbNy3e";
     DocumentSnapshot documentSnapshot = await users.doc(uid).get();
     return documentSnapshot.data();

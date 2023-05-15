@@ -19,7 +19,7 @@ class _LoginPinState extends State<LoginPin> {
   int seconds = 0;
   int intentos = 0;
   bool habilitado = true;
-  var firebaseUsuario = FirebaseUsuario();
+  var firebaseUsuario = AuthService();
   // late usaurio;
   void _startCountDwn(){
     Timer.periodic(const Duration(seconds: 1), (timer) {

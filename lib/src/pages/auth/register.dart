@@ -17,7 +17,7 @@ class Register extends StatefulWidget {
 }
 
 class _RegisterState extends State<Register> {
-  var firebaseUsuario = FirebaseUsuario();
+  var authService = AuthService();
   final _formKey = GlobalKey<FormState>();
   late List<DataRecognition> respuesta;
   late String uuid = '';
@@ -184,7 +184,7 @@ class _RegisterState extends State<Register> {
       List<int> bytes = File(pickedFile.path).readAsBytesSync();
       String imagen64 = base64.encode(bytes);
       _cargar();
-      final validateFoto = await firebaseUsuario.verificarFoto(imagen64, uuid);
+      final validateFoto = await authService.verificarFoto(imagen64, uuid);
       Navigator.pop(context);
       if (!validateFoto) {
         setState(() {
@@ -215,7 +215,7 @@ class _RegisterState extends State<Register> {
       List<int> bytes = File(pickedFile.path).readAsBytesSync();
       String imagen64 = base64.encode(bytes);
       _cargar();
-      await firebaseUsuario.verificarFoto(imagen64, uuid);
+      await authService.verificarFoto(imagen64, uuid);
       // respuesta = await luxandService.reconocerCara(_imagen64);
       Navigator.pop(context);
       if (respuesta.isEmpty) {
@@ -256,7 +256,7 @@ class _RegisterState extends State<Register> {
                 onPressed: () async {
                   _cargar();
                   Map<String, dynamic> respuesta =
-                      await firebaseUsuario.verificarCi(_ciController!.text);
+                      await authService.verificarCi(_ciController!.text);
                   Navigator.pop(context);
                   if (respuesta['match']) {
                     Navigator.pop(context);
@@ -334,7 +334,7 @@ class FormularioRegister extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var firebaseUsuario = FirebaseUsuario();
+    var authService = AuthService();
     return Form(
       key: _formKey,
       child: Padding(
@@ -394,7 +394,7 @@ class FormularioRegister extends StatelessWidget {
                       builder: (context) {
                         return const Center(child: CircularProgressIndicator());
                       });
-                  Map<String, dynamic> res = await firebaseUsuario
+                  Map<String, dynamic> res = await authService
                       .registrarUsuario(data, imagePath, filename);
                   Navigator.pop(context);
                   if (res['status']) {

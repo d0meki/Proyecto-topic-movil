@@ -6,7 +6,7 @@ class ProfileScreen extends StatefulWidget {
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
 class _ProfileScreenState extends State<ProfileScreen> {
-  var firebaseUsuario = FirebaseUsuario();
+  var authService = AuthService();
   @override
   Widget build(BuildContext context) {
     dynamic uuid = ModalRoute.of(context)!.settings.arguments;
@@ -28,7 +28,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       backgroundColor: Colors.blueGrey[800],
       body: SafeArea(
           child: FutureBuilder(
-        future: firebaseUsuario.getUserWhitUuid(uuid),
+        future: authService.getUserWhitUuid(uuid),
         builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
           if (snapshot.hasData) {
             return Column(
