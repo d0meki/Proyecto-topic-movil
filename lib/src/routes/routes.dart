@@ -1,7 +1,7 @@
 import 'package:topicos_proy/src/pages/auth/camara.dart';
 import 'package:topicos_proy/src/pages/auth/login_pin.dart';
-import 'package:topicos_proy/src/pages/auth/logindos.dart';
 import 'package:topicos_proy/src/pages/auth/register.dart';
+import 'package:topicos_proy/src/pages/auth/login.dart';
 import 'package:topicos_proy/src/pages/denuncias/detalle_reclamo.dart';
 import 'package:topicos_proy/src/pages/denuncias/lista_denuncias.dart';
 import 'package:topicos_proy/src/pages/denuncias/lista_reclamos.dart';
@@ -14,8 +14,8 @@ import 'package:topicos_proy/src/pages/profile_screen.dart';
 class Routes {
   static const initialRoute = 'login';
   static final Map<String, Widget Function(BuildContext)> routes = {
-    'home': (BuildContext context) => const HomePage(),
-    'login': (BuildContext context) => const LoginDos(),
+    'home': (BuildContext context) => HomePage(),
+    'login': (BuildContext context) => Login(),
     'register': (BuildContext context) => const Register(),
     'camara': (BuildContext context) => const CamaraApp(),
     'lista': (BuildContext context) => const ListaDenuncias(),

@@ -1,17 +1,13 @@
 // ignore_for_file: use_build_context_synchronously
-
 import 'dart:convert';
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:topicos_proy/src/Controllers/luxand_controller.dart';
-import 'package:topicos_proy/src/Controllers/reclamos_controller.dart';
 import 'package:topicos_proy/src/Controllers/usuario_controller.dart';
 import 'package:topicos_proy/src/models/datarecognition.dart';
 import 'package:topicos_proy/src/util/validaciones.dart';
 import 'package:topicos_proy/src/widget/textform.dart';
-import 'package:topicos_proy/src/models/profile.dart';
+import 'package:topicos_proy/src/widget/widgets.dart';
 
 class Register extends StatefulWidget {
   const Register({super.key});
@@ -21,110 +17,26 @@ class Register extends StatefulWidget {
 }
 
 class _RegisterState extends State<Register> {
-  var luxandService = LuxandService();
-  // var reclamosService = ReclamosService();
   var firebaseUsuario = FirebaseUsuario();
+  final _formKey = GlobalKey<FormState>();
   late List<DataRecognition> respuesta;
-  late bool guardarUsuario;
-  late String url;
-  Text msgTextImage = const Text('Foto de perfil no seleccionado');
-  // String uuid = '65ef1a9b-d0aa-11ed-86a0-0242ac160002';
-  late Profile profile;
+  late String uuid = '';
   late String imagePath = '';
-  late String _imagen64;
+  late String fileName = '';
+  final picker = ImagePicker();
   TextEditingController? _nameController;
   TextEditingController? _ciController;
   TextEditingController? _phoneController;
   TextEditingController? _mailController;
-  TextEditingController? _uuidController;
-  TextEditingController? _avatarController;
-
-  final picker = ImagePicker();
-  choceImageGallery() async {
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-    final String fileName = pickedFile!.path.split('/').last;
-    if (pickedFile != null) {
-      List<int> bytes = File(pickedFile.path).readAsBytesSync();
-      _imagen64 = base64.encode(bytes);
-      showDialog(
-          context: context,
-          builder: (context) {
-            return const Center(child: CircularProgressIndicator());
-          });
-      respuesta = await luxandService.reconocerCara(_imagen64);
-
-      Navigator.pop(context);
-      if (respuesta.isEmpty) {
-        showDialog(
-            context: context,
-            builder: ((context) => AlertDialog(
-                  title: const Text('Warnning'),
-                  content: const Text('Unregistered user'),
-                  actions: [
-                    TextButton(
-                        onPressed: () {
-                          Navigator.of(context).pushNamedAndRemoveUntil(
-                              'login', (Route<dynamic> route) => false);
-                        },
-                        child: const Text('Yes'))
-                  ],
-                )));
-      }
-      url = await firebaseUsuario.uploadAvatartorage(
-          File(pickedFile.path), fileName);
-      setState(() {
-        imagePath = pickedFile.path;
-        _nameController!.text = respuesta[0].name;
-        _uuidController!.text = respuesta[0].uuid;
-        // _avatarController!.text = url;
-      });
-    }
-  }
-
-  choceImageCamare() async {
-    final pickedFile = await picker.pickImage(source: ImageSource.camera);
-    if (pickedFile != null) {
-      List<int> bytes = File(pickedFile.path).readAsBytesSync();
-      _imagen64 = base64.encode(bytes);
-      showDialog(
-          context: context,
-          builder: (context) {
-            return const Center(child: CircularProgressIndicator());
-          });
-      respuesta = await luxandService.reconocerCara(_imagen64);
-      Navigator.pop(context);
-      if (respuesta.isEmpty) {
-        showDialog(
-            context: context,
-            builder: ((context) => AlertDialog(
-                  title: const Text('Warnning'),
-                  content: const Text('Unregistered user'),
-                  actions: [
-                    TextButton(
-                        onPressed: () {
-                          Navigator.of(context).pushNamedAndRemoveUntil(
-                              'login', (Route<dynamic> route) => false);
-                        },
-                        child: const Text('Yes'))
-                  ],
-                )));
-      }
-      setState(() {
-        imagePath = pickedFile.path;
-        _nameController!.text = respuesta[0].name;
-        _uuidController!.text = respuesta[0].uuid;
-      });
-    }
-  }
 
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController();
-    _uuidController = TextEditingController();
     _ciController = TextEditingController();
     _phoneController = TextEditingController();
     _mailController = TextEditingController();
+    _pedirCi();
   }
 
   @override
@@ -151,12 +63,12 @@ class _RegisterState extends State<Register> {
                 child: Center(
                   child: imagePath == ''
                       ? Column(
-                          children: [
-                            const SizedBox(
+                          children: const [
+                            SizedBox(
                                 width: 150,
                                 height: 150,
                                 child: Icon(Icons.add_a_photo)),
-                            msgTextImage
+                            Text('Foto de perfil no seleccionado')
                           ],
                         )
                       : SizedBox(
@@ -247,122 +159,259 @@ class _RegisterState extends State<Register> {
             ),
             Padding(
               padding: const EdgeInsets.all(10.0),
-              child: Form(
-                child: Column(
-                  children: [
-                    CustomTextFormField(
-                        _nameController!,
-                        const Icon(Icons.assignment_outlined),
-                        "Nombre y apellido",
-                        TextInputType.text,
-                        validateTextFormField: (String value) {
-                      if (value.isEmpty) return "Escriba su nombre por favor";
-                      return null;
-                    }),
-                    CustomTextFormField(
-                        _ciController!,
-                        const Icon(Icons.account_box),
-                        "Carnet de Identidad",
-                        TextInputType.phone,
-                        validateTextFormField: (String value) {
-                      if (value.isEmpty) return "Escriba su CI por favor";
-                      if (!Validation.soloNumeros(_ciController!.text)) {
-                        return "Solo se permite números";
-                      }
-                      return null;
-                    }),
-                    CustomTextFormField(
-                        _phoneController!,
-                        const Icon(Icons.phone),
-                        "Teléfono",
-                        TextInputType.phone,
-                        validateTextFormField: (String value) {
-                      if (value.isEmpty) return "Escriba su télefono por favor";
-                      if (!Validation.soloNumeros(_phoneController!.text)) {
-                        return "Solo se permite números";
-                      }
-                      return null;
-                    }),
-                    CustomTextFormField(
-                        _mailController!,
-                        const Icon(Icons.mail),
-                        "Correo",
-                        TextInputType.emailAddress,
-                        validateTextFormField: (String value) {
-                      if (value.isEmpty) return "Escriba su correo por favor";
-                      return null;
-                    }),
-                    const SizedBox(
-                      height: 10,
-                    ),
-                    ElevatedButton(
-                      onPressed: () async {
-                        Map<String, dynamic> data = {
-                          "ci": _ciController!.text,
-                          "name": _nameController!.text,
-                          "telefono": _phoneController!.text,
-                          "email": _mailController!.text,
-                          "uuid": _uuidController!.text,
-                          "avatar": url,
-                        };
-                        guardarUsuario = await firebaseUsuario.addUser(data);
-                        showDialog(
-                            context: context,
-                            builder: (context) {
-                              return const Center(
-                                  child: CircularProgressIndicator());
-                            });
-                        if (guardarUsuario) {
-                          showDialog(
-                              context: context,
-                              builder: ((context) => AlertDialog(
-                                    title: const Text('Success'),
-                                    content: const Text(
-                                        "Usuario Registrado Con Exito"),
-                                    actions: [
-                                      TextButton(
-                                          onPressed: () {
-                                            Navigator.of(context)
-                                                .pushNamedAndRemoveUntil(
-                                                    'login',
-                                                    (Route<dynamic> route) =>
-                                                        false);
-                                          },
-                                          child: const Text('Yes'))
-                                    ],
-                                  )));
-                        } else {
-                          showDialog(
-                              context: context,
-                              builder: ((context) => AlertDialog(
-                                    title: const Text('Error'),
-                                    content: const Text(
-                                        'Sucedio un error en el registro'),
-                                    actions: [
-                                      TextButton(
-                                          onPressed: () {
-                                            Navigator.of(context)
-                                                .pushNamedAndRemoveUntil(
-                                                    'login',
-                                                    (Route<dynamic> route) =>
-                                                        false);
-                                          },
-                                          child: const Text('Yes'))
-                                    ],
-                                  )));
-                        }
-                      },
-                      child: const Text(
-                        'Registrarse',
-                      ),
-                    ),
-                    Container(
-                      height: 100,
-                    )
-                  ],
-                ),
+              child: FormularioRegister(
+                formKey: _formKey,
+                nameController: _nameController,
+                ciController: _ciController,
+                phoneController: _phoneController,
+                mailController: _mailController,
+                filename: fileName,
+                imagePath: imagePath,
               ),
             )
+          ],
+        ),
+      ),
+    );
+  }
+
+  choceImageGallery() async {
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        fileName = pickedFile.path.split('/').last;
+      });
+      List<int> bytes = File(pickedFile.path).readAsBytesSync();
+      String imagen64 = base64.encode(bytes);
+      _cargar();
+      final validateFoto = await firebaseUsuario.verificarFoto(imagen64, uuid);
+      Navigator.pop(context);
+      if (!validateFoto) {
+        setState(() {
+          fileName = '';
+        });
+        showDialog(
+            context: context, builder: ((context) => const UnregisterUser()));
+      } else {
+        setState(() {
+          imagePath = pickedFile.path;
+        });
+      }
+    }
+  }
+
+  Future<dynamic> _cargar() {
+    return showDialog(
+        context: context,
+        builder: (context) {
+          return const Center(child: CircularProgressIndicator());
+        });
+  }
+
+  choceImageCamare() async {
+    //TODO: Realizar configuraciones necesarias
+    final pickedFile = await picker.pickImage(source: ImageSource.camera);
+    if (pickedFile != null) {
+      List<int> bytes = File(pickedFile.path).readAsBytesSync();
+      String imagen64 = base64.encode(bytes);
+      _cargar();
+      await firebaseUsuario.verificarFoto(imagen64, uuid);
+      // respuesta = await luxandService.reconocerCara(_imagen64);
+      Navigator.pop(context);
+      if (respuesta.isEmpty) {
+        showDialog(
+            context: context, builder: ((context) => const UnregisterUser()));
+      }
+      setState(() {
+        imagePath = pickedFile.path;
+      });
+    }
+  }
+
+  _pedirCi() async {
+    await Future.delayed(const Duration(milliseconds: 50));
+     showDialog(
+        barrierDismissible: false,
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('CI'),
+            content: CustomTextFormField(
+                _ciController!,
+                const Icon(Icons.account_box),
+                "Carnet de Identidad",
+                TextInputType.phone, validateTextFormField: (String value) {
+              if (value.isEmpty) return "Escriba su CI por favor";
+              if (!Validation.soloNumeros(_ciController!.text)) {
+                return "Solo se permite números";
+              }
+              return null;
+            }),
+            actions: [
+              ElevatedButton(
+                onPressed: () => Navigator.pushNamed(context, 'login'),
+                child: const Text('Cacnelar'),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  _cargar();
+                  Map<String, dynamic> respuesta =
+                      await firebaseUsuario.verificarCi(_ciController!.text);
+                  Navigator.pop(context);
+                  if (respuesta['match']) {
+                    Navigator.pop(context);
+                    Widgets.alertSnackbar(context, respuesta['msg']);
+                    _nameController!.text = respuesta['name'];
+                    setState(() {
+                      uuid = respuesta['uuid'];
+                    });
+                  } else {
+                    Widgets.alertSnackbar(context, respuesta['msg']);
+                    Navigator.pushNamed(context, 'login');
+                  }
+                },
+                child: const Text('Verificar'),
+              ),
+            ],
+          );
+        });
+  }
+
+  @override
+  void dispose() {
+    _nameController?.dispose();
+    _ciController?.dispose();
+    _phoneController?.dispose();
+    _mailController?.dispose();
+    super.dispose();
+  }
+}
+
+class UnregisterUser extends StatelessWidget {
+  const UnregisterUser({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Warnning'),
+      content: const Text('Foto no corresponde al Usuario'),
+      actions: [
+        TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: const Text('Yes'))
+      ],
+    );
+  }
+}
+
+class FormularioRegister extends StatelessWidget {
+  const FormularioRegister({
+    super.key,
+    required GlobalKey<FormState> formKey,
+    required TextEditingController? nameController,
+    required TextEditingController? ciController,
+    required TextEditingController? phoneController,
+    required TextEditingController? mailController,
+    required this.imagePath,
+    required this.filename,
+  })  : _formKey = formKey,
+        _nameController = nameController,
+        _ciController = ciController,
+        _phoneController = phoneController,
+        _mailController = mailController;
+
+  final GlobalKey<FormState> _formKey;
+  final TextEditingController? _nameController;
+  final TextEditingController? _ciController;
+  final TextEditingController? _phoneController;
+  final TextEditingController? _mailController;
+  final String imagePath;
+  final String filename;
+
+  @override
+  Widget build(BuildContext context) {
+    var firebaseUsuario = FirebaseUsuario();
+    return Form(
+      key: _formKey,
+      child: Padding(
+        padding:
+            const EdgeInsets.only(right: 50, left: 50, bottom: 10, top: 20),
+        child: Column(
+          children: [
+            CustomTextFormField(
+                _nameController!,
+                const Icon(Icons.assignment_outlined),
+                "Nombre y apellido",
+                TextInputType.text,
+                readOnly: true, validateTextFormField: (String value) {
+              if (value.isEmpty) return "Escriba su nombre por favor";
+              return null;
+            }),
+            CustomTextFormField(_ciController!, const Icon(Icons.account_box),
+                "Carnet de Identidad", TextInputType.phone, readOnly: true,
+                validateTextFormField: (String value) {
+              if (value.isEmpty) return "Escriba su CI por favor";
+              if (!Validation.soloNumeros(_ciController!.text)) {
+                return "Solo se permite números";
+              }
+              return null;
+            }),
+            CustomTextFormField(
+                _phoneController!,
+                const Icon(Icons.phone),
+                "Teléfono",
+                TextInputType.phone, validateTextFormField: (String value) {
+              if (value.isEmpty) return "Escriba su télefono por favor";
+              if (!Validation.soloNumeros(_phoneController!.text)) {
+                return "Solo se permite números";
+              }
+              return null;
+            }),
+            CustomTextFormField(_mailController!, const Icon(Icons.mail),
+                "Correo", TextInputType.emailAddress,
+                validateTextFormField: (String value) {
+              if (value.isEmpty) return "Escriba su correo por favor";
+              return null;
+            }),
+            const SizedBox(
+              height: 10,
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Map<String, dynamic> data = {
+                  "ci": _ciController!.text,
+                  "name": _nameController!.text,
+                  "telefono": _phoneController!.text,
+                  "email": _mailController!.text,
+                };
+                if (_formKey.currentState!.validate() && imagePath != '') {
+                  showDialog(
+                      context: context,
+                      builder: (context) {
+                        return const Center(child: CircularProgressIndicator());
+                      });
+                  Map<String, dynamic> res = await firebaseUsuario
+                      .registrarUsuario(data, imagePath, filename);
+                  Navigator.pop(context);
+                  if (res['status']) {
+                    Widgets.alertSnackbar(
+                        context, '${res['msg']} ${res['verifyEmail']}');
+                    Navigator.pushNamed(context, 'login');
+                  } else {
+                    Widgets.alertSnackbar(context, res['msg']);
+                  }
+                } else {
+                  Widgets.alertSnackbar(context, 'Formulario Incompleto');
+                }
+              },
+              child: const Text(
+                'Registrarse',
+              ),
+            ),
           ],
         ),
       ),

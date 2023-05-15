@@ -210,7 +210,7 @@ class _LoginPinState extends State<LoginPin> {
                       child: TextButton(
                           onPressed:habilitado? () async {
                             try {
-                              final respuesta =
+                              /* final respuesta =
                                   await firebaseUsuario.login(code);
 
                                   print(respuesta['status']);
@@ -237,7 +237,7 @@ class _LoginPinState extends State<LoginPin> {
                                       habilitado = false;
                                       _startCountDwn();
                                     }
-                                  }
+                                  } */
                               // print(usaurio['uuid']);
 
 

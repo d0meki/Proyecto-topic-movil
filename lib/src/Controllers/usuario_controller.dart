@@ -1,163 +1,267 @@
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:http/http.dart' as http;
+import 'package:topicos_proy/src/models/datarecognition.dart';
 
 class FirebaseUsuario {
-  FirebaseUsuario();
-
+  //INI PROPIEDADES DEL AUTH
+  final baseUrl = 'https://api.luxand.cloud';
+  final token = 'd3b1e27cd4c544b19e48a65125ca0112';
   final CollectionReference _users =
       FirebaseFirestore.instance.collection('users');
   final storage = FirebaseStorage.instance;
-
+  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   CollectionReference get users => _users;
+//FIN PROPIEDADES DEL AUTH
+  FirebaseUsuario();
 
-  // List _allDatasChofer = [];
-  // List get allDtasChofer => _allDatasChofer;
-
-  // Recorridos
-  // Future<void> addRecorrido(Map<String, dynamic> data) async {
-  //   await _recorridos.add(data);
-  // }
-  // Cordenadas
-
-  // Future<void> addUbicacion(Map<String, dynamic> data, id) async {
-  //   await _ubicaciones.doc(id).set(data);
-  // }
-
-  // Future<dynamic> getUbicacion(id) async {
-  //   DocumentSnapshot documentSnapshot = await _ubicaciones.doc(id).get();
-  //   return documentSnapshot.data();
-  // }
-  //chofer
-  // Future<dynamic> getChofer() async {
-  //   String uid = await SharedPreferencesService.getSharedString("acces_token");
-  //   DocumentSnapshot documentSnapshot = await chofer.doc(uid).get();
-  //   return documentSnapshot.data();
-  // }
-  Future<dynamic> getUser() async {
-    const String uid = "zhFiV0xrj5OAx3jbNy3e";
-    DocumentSnapshot documentSnapshot = await users.doc(uid).get();
-    return documentSnapshot.data();
-  }
-
-  Future<dynamic> login(pin) async {
-    String email = 'marioabc@gmail.com';
+//FIN METODOS AUTH
+  Future<dynamic> login(email, password) async {
     Map<String, dynamic> respuesta;
-    QuerySnapshot<dynamic> documentSnapshotValidarEmail =
-        await _users.where('email', isEqualTo: email).get();
-    Map<String, dynamic> userEmail =
-        documentSnapshotValidarEmail.docs[0].data();
-    if (documentSnapshotValidarEmail.size == 0) {
-      print('Correo no existe');
-    } else {
-      if (userEmail['bloqueado']) {
-        print(userEmail['timer'].toDate());
-        if (userEmail['timer'].seconds <= Timestamp.now().seconds) {
-          // print(userEmail['timer'].toDate());
-          // print('desbloquear');
+    try {
+      //INI VALIDACION EMAIL VERIFICADO
+      UserCredential userCredential = await _firebaseAuth
+          .signInWithEmailAndPassword(email: email, password: password);
+      User? user = FirebaseAuth.instance.currentUser;
+      if (user != null && !user.emailVerified) {
+        await user.sendEmailVerification();
+        respuesta = {
+          "status": false,
+          "msg": "Email no verificado revise su correo"
+        };
+        return respuesta;
+        //FIN VALIDACION EMAIL VERIFICADO
+      }
+      //INI VALIDACION SI CAMBIÓ SU PASSWORD
+      QuerySnapshot<dynamic> documentSnapshot =
+          await _users.where('authUid', isEqualTo: user!.uid).get();
+      Map<String, dynamic> dataUsuario = documentSnapshot.docs[0].data();
+      if (!dataUsuario['changePassword']) {
+        respuesta = {
+          "status": false,
+          "msg": "Por seguridad debe cambiar su contraseña"
+        };
+        return respuesta;
+        //FIN VALIDACION SI CAMBIÓ SU PASSWORD
+      }
+      //INI SI ESTA BLOQUEDDO
+      if (dataUsuario['bloqueado']) {
+        //INI SI ESTA BLOQUEADO Y TERMINÓ SU TIEMPO DE BLOQUEO, SE DESBLOQUEA AL USUARIO
+        if (dataUsuario['timer'].seconds <= Timestamp.now().seconds) {
+          
           Map<String, dynamic> desbloquear = {
             'bloqueado': false,
             'intentos': 0
           };
-          await users
-              .doc(documentSnapshotValidarEmail.docs[0].id)
-              .update(desbloquear);
-              DocumentSnapshot documentSnapshot = await users.doc(documentSnapshotValidarEmail.docs[0].id).get();
-             userEmail = documentSnapshot.data() as Map<String, dynamic>;
+          await _users.doc(documentSnapshot.docs[0].id).update(desbloquear);
+          documentSnapshot =
+              await _users.where('authUid', isEqualTo: user.uid).get();
+          dataUsuario = documentSnapshot.docs[0].data();
+          respuesta = {
+            "status": true,
+            "msg":
+                "uid: ${userCredential.user!.uid}, email: ${userCredential.user!.email}"
+          };
+          return respuesta;
+        //FIN SI ESTA BLOQUEADO Y TERMINÓ SU TIEMPO DE BLOQUEO, SE DESBLOQUEA AL USUARIO  
+        } else {
+          //INI SI SU TIEMPO DE BLOQUEO SIGUE VIGENTE, RETORNAMOS EL TIEMPO RESTANTE PARA SU DESBLOQUEO
+          int diferencia =
+              dataUsuario['timer'].seconds - Timestamp.now().seconds;
+          respuesta = {
+            "status": false,
+            "msg": "bloqueado por $diferencia segundos"
+          };
+          return respuesta;
+           //FIN SI SU TIEMPO DE BLOQUEO SIGUE VIGENTE, RETORNAMOS EL TIEMPO RESTANTE PARA SU DESBLOQUEO
         }
+      //FIN SI ESTA BLOQUEDDO
+      } else {
+        //INI SI NO ESTÁ BLOQUEADO Y PASA TODAS LAS VALIDACIONES, EL USUARIO SE LOGEA
+        respuesta = {
+          "status": true,
+          "msg":
+              "uid: ${userCredential.user!.uid}, email: ${userCredential.user!.email}"
+        };
+        return respuesta;
+        //FIN SI NO ESTÁ BLOQUEADO Y PASA TODAS LAS VALIDACIONES, EL USUARIO SE LOGEA
       }
-
-      if (!userEmail['bloqueado']) {
-        QuerySnapshot<dynamic> documentSnapshotPin =
-            await _users.where('pin', isEqualTo: pin).get();
-        if (documentSnapshotPin.size == 0) {
-          if (userEmail['intentos'] != 2) {
-            int increment = userEmail['intentos'] + 1;
+    } on FirebaseAuthException catch (e) {
+      //INI SI EL CORREO ES INCORRECTO
+      if (e.code == 'user-not-found') {
+        respuesta = {"status": false, "msg": e.code};
+        return respuesta;
+      //FIN SI EL CORREO ES INCORRECTO
+      } else if (e.code == 'wrong-password') {
+        //INI SI EL PASSWORD ES INCORRECTO
+        QuerySnapshot<dynamic> documentSnapshot =
+            await _users.where('email', isEqualTo: email).get();
+        Map<String, dynamic> dataUsuario = documentSnapshot.docs[0].data();
+        if (!dataUsuario['bloqueado']) {
+          //INI INCREMENTAMOS INTENTOS
+          if (dataUsuario['intentos'] != 2) {
+            int increment = dataUsuario['intentos'] + 1;
             Map<String, dynamic> data = {'intentos': increment};
-            await users
-                .doc(documentSnapshotValidarEmail.docs[0].id)
-                .update(data);
-            respuesta = {'status': false, 'intentos': increment};
+            await users.doc(documentSnapshot.docs[0].id).update(data);
+            respuesta = {'status': false, 'msg': 'wrong-password ntento Nro $increment'};
             return respuesta;
+          //INI INCREMENTAMOS INTENTOS
           } else {
+            //INI BLOQUEAMOS POR EXESO DE INTENTOS
             DateTime date = DateTime.now();
             date = date.add(const Duration(minutes: 1));
             Map<String, dynamic> timer = {
               'bloqueado': true,
               'timer': Timestamp.fromDate(date)
             };
-            await users
-                .doc(documentSnapshotValidarEmail.docs[0].id)
-                .update(timer);
+            await users.doc(documentSnapshot.docs[0].id).update(timer);
+            int increment = dataUsuario['intentos'] + 1;
             respuesta = {
               'status': false,
-              'intentos': userEmail['intentos'] + 1,
-              'bloqueado': true,
-              'seconds': 60
+              'msg': 'wrong-password ntento Nro $increment',
+              'bloqueado': true
             };
             return respuesta;
+          //FIN BLOQUEAMOS POR EXESO DE INTENTOS
           }
-        } else {
-          print('logeado con exito');
-          respuesta = {"status": true};
-          return respuesta;
         }
-      } else {
-        print('Este usuario ya esta bloqueado por tiempo limitado');
-        int diferencia = userEmail['timer'].seconds - Timestamp.now().seconds;
+        respuesta = {"status": false, "msg": e.code};
+        return respuesta;
+         //FIN SI EL PASSWORD ES INCORRECTO
+      }
+    }
+  }
+
+  Future<dynamic> registrarUsuario(
+      Map<String, dynamic> usuario, imagenPath, fileName) async {
+    Map<String, dynamic> respuesta;
+    String name = Timestamp.now().seconds.toString() + fileName;
+    File avatar = File(imagenPath);
+    try {
+      //INI REGISTRAR EN AUTH Y ENVIAR EMAIL
+      UserCredential userCredential =
+          await _firebaseAuth.createUserWithEmailAndPassword(
+              email: usuario['email'], password: usuario['ci']);
+      User? user = FirebaseAuth.instance.currentUser;
+      if (user != null && !user.emailVerified) {
+        await user.sendEmailVerification();
+      }
+      //FIN REGISTRAR EN AUTH Y ENVIAR EMAIL
+      // INI GUARDAR AVATAR EN STORAGE
+      final Reference ref = storage.ref('avatares').child(name);
+      final UploadTask uploadTask = ref.putFile(avatar);
+      final TaskSnapshot snapshot = await uploadTask.whenComplete(() => true);
+      final String url = await snapshot.ref.getDownloadURL();
+      //FIN GUARDAR AVATAR EN STORAGE
+      //INI ACTUALIZAR USUARIO
+      Map<String, dynamic> usuarioUpdate = {
+        "telefono": usuario['telefono'],
+        "email": usuario['email'],
+        "password": usuario['ci'],
+        "authUid": userCredential.user!.uid,
+        "avatar": url,
+        "changePassword": false,
+        "bloqueado": false,
+        "intentos": 0,
+        "timer": Timestamp.now()
+      };
+      QuerySnapshot<dynamic> documentSnapshot =
+          await _users.where('ci', isEqualTo: usuario['ci']).get();
+      await _users.doc(documentSnapshot.docs[0].id).update(usuarioUpdate);
+      //FIN ACTUALIZAR USUARIO
+      respuesta = {
+        "status": true,
+        "msg": "Registrado con exito!!",
+        "verifyEmail": "Se envio un correo de verificacion"
+      };
+      return respuesta;
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'weak-password') {
         respuesta = {
-          'status': false,
-          'intentos': userEmail['intentos'] + 1,
-          'bloqueado': true,
-          'seconds': diferencia
+          "status": false,
+          "msg": e.code,
+        };
+        return respuesta;
+      } else if (e.code == 'email-already-in-use') {
+        respuesta = {
+          "status": false,
+          "msg": e.code,
         };
         return respuesta;
       }
-      // print(documentSnapshotPin.docs[0].data());
+      //CUALQUIER OTRA EXCEPCION INCLUIDA LA DE LOS 6 CARACTERES
+       respuesta = {
+        "status": false,
+        "msg": e.code,
+      };
+       return respuesta;
+    } catch (e) {
+      respuesta = {
+        "status": false,
+        "msg": e,
+      };
+      return respuesta;
     }
   }
 
-  Future<dynamic> getUserWhitPin(pin) async {
-    QuerySnapshot<dynamic> documentSnapshot =
-        await _users.where('pin', isEqualTo: pin).get();
-
-    Map<String, dynamic> usuariofind = documentSnapshot.docs[0].data();
-    //  DateTime date = DateTime.now(); // 11 de mayo de 2023 a las 3:30 PM
-
-    Timestamp timestampFin = usuariofind['timer']['timestamp'];
-    DateTime dateFin = timestampFin.toDate();
-    print('Antes $dateFin');
-    dateFin = dateFin.add(Duration(seconds: usuariofind['timer']['seconds']));
-    timestampFin = Timestamp.fromDate(dateFin);
-    print("despues de añadir los segunods $dateFin");
-
-    print('BD: ${timestampFin.seconds} now: ${Timestamp.now().seconds}');
-    print('BD: ${timestampFin.toDate()} now: ${Timestamp.now().toDate()}');
-
-    if (timestampFin.seconds < Timestamp.now().seconds) {
-      print('desbloqueado');
+  Future<dynamic> verificarCi(String ci) async {
+    Map<String, dynamic> resp;
+    QuerySnapshot<dynamic> documentSnapshotCi =
+        await _users.where('ci', isEqualTo: ci).get();
+    if (documentSnapshotCi.size == 0) {
+      resp = {
+        "match": false,
+        "name": "SN",
+        "msg": "Usuario no registrado en el Segip",
+        "uuid": "none"
+      };
     } else {
-      print('Sigue bloqueado');
+      Map<String, dynamic> user = documentSnapshotCi.docs[0].data();
+      resp = {
+        "match": true,
+        "name": user["name"],
+        "msg": "Usuario registrado en el Segip, puede continuar",
+        "uuid": user['uuid']
+      };
     }
-    print(usuariofind['ci']);
-    // UsuarioFind usuarioFind = documentSnapshot.docs[0].data();
-    // print(usuarioFind.ci);
-    print(documentSnapshot.docs[0].data());
-
-    // return documentSnapshot.docs[0];
+    return resp;
   }
 
-  Future<dynamic> getUserWhitUuid(uuid) async {
+  Future<bool> verificarFoto(String image64, String uuid) async {
+    final url = Uri.parse('$baseUrl/photo/search/v2');
+    try {
+      final res = await http
+          .post(url, headers: {'token': token}, body: {'photo': image64});
+      final data = dataRecognitionFromJson(res.body);
+      if (data.isEmpty) {
+        return false;
+      } else {
+        if (data[0].uuid == uuid) {
+          return true;
+        } else {
+          return false;
+        }
+      }
+    } catch (e) {
+      return false;
+    }
+  }
+
+  Future<bool> signOut() async {
+    await _firebaseAuth.signOut();
+    return true;
+  }
+
+  //FIN METODOS AUTH
+
+
+    Future<dynamic> getUserWhitUuid(uuid) async {
     QuerySnapshot<Object?> documentSnapshot =
         await users.where('uuid', isEqualTo: uuid).get();
     return documentSnapshot.docs[0];
   }
-
-  // Future<void> addChofer(Map<String, dynamic> data, String uid) async {
-  //   print("DATA FIRESTORE ${data}");
-  //   await _users.doc(uid).set(data);
-  // }
-
   Future<bool> addUser(Map<String, dynamic> data) async {
     return await _users
         .add(data)
@@ -175,30 +279,10 @@ class FirebaseUsuario {
     } catch (e) {
       return "";
     }
-    // print(element);
-    // Files.upLoadImage(
-    //     element["path_img"], element["name_img"], element["file"]);
   }
-
-  // Future<void> getDataChofer({DocumentSnapshot? documentSnapshot}) async {
-  //   // print(await _chofer.doc(documentSnapshot!.id).get());
-  //   _chofer.get().then((QuerySnapshot querySnapshot) {
-  //     querySnapshot.docs.forEach((doc) {
-  //       print("DATA: ${doc.data()}");
-  //       // _allDatasChofer.add(doc.data());
-  //     });
-  //   });
-  // }
-
-  // uploadDataFirestore(Map<String, dynamic> dataFirestore, String uid) {
-  //   addChofer(dataFirestore, uid);
-  // }
-
-  // uploadDataStorage(List<Map<String, dynamic>> dataStorage) {
-  //   dataStorage.forEach((element) {
-  //     // print(element);
-  //     Files.upLoadImage(
-  //         element["path_img"], element["name_img"], element["file"]);
-  //   });
-  // }
+   Future<dynamic> getUser() async {
+    const String uid = "zhFiV0xrj5OAx3jbNy3e";
+    DocumentSnapshot documentSnapshot = await users.doc(uid).get();
+    return documentSnapshot.data();
+  }
 }
