@@ -259,25 +259,38 @@ class AuthService {
   }
 
   Future<dynamic> changePassword(String newPassword) async {
-    Map<String, dynamic> respuesta; 
+    Map<String, dynamic> respuesta;
+    if (newPassword.length < 8 || !containsAlphanumeric(newPassword)) {
+      respuesta = {
+        "status": false,
+        "msg": "Password debe ser alfanumerico y Mayor o igual a o 8 caracteres"
+      };
+      return respuesta;
+    }
     try {
       User? user = _firebaseAuth.currentUser;
       await user?.updatePassword(newPassword);
       QuerySnapshot<dynamic> documentSnapshot =
-            await _users.where('email', isEqualTo: user?.email).get();
-        Map<String, dynamic> data = {'changePassword': true};
-            await users.doc(documentSnapshot.docs[0].id).update(data);
-        respuesta = {
-          "status":true,
-          "msg":"Password cambiado satisfactoriamente"
-        };
-        return respuesta;
+          await _users.where('email', isEqualTo: user?.email).get();
+      Map<String, dynamic> data = {'changePassword': true,"password":newPassword};
+      await users.doc(documentSnapshot.docs[0].id).update(data);
+      respuesta = {
+        "status": true,
+        "msg": "Password cambiado satisfactoriamente"
+      };
+      return respuesta;
     } on FirebaseAuthException catch (e) {
-        respuesta = {
-          "status":false,
-          "msg":'error: ${e.code}'
-        };
-        return respuesta;
+      respuesta = {"status": false, "msg": 'error: ${e.code}'};
+      return respuesta;
+    }
+  }
+
+  bool logeado() {
+    User? user = _firebaseAuth.currentUser;
+    if (user != null) {
+      return true;
+    } else {
+      return false;
     }
   }
 
@@ -287,6 +300,11 @@ class AuthService {
   }
 
   //FIN METODOS AUTH
+
+  bool containsAlphanumeric(String password) {
+    final alphanumeric = RegExp(r'^[a-zA-Z0-9]+$');
+    return alphanumeric.hasMatch(password);
+  }
 
   Future<dynamic> getUserWhitUuid(uuid) async {
     QuerySnapshot<Object?> documentSnapshot =

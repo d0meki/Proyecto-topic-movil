@@ -8,7 +8,7 @@ class CustomTextFormField extends StatelessWidget {
   bool hideText;
   bool readOnly;
   Function? validateTextFormField;
-
+  
   CustomTextFormField(
       this.textEditingController, this.icon, this.label, this.typeKeyboard,
       {this.hideText = false,

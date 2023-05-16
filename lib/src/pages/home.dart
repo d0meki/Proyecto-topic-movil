@@ -19,6 +19,8 @@ class HomePage extends StatelessWidget {
               if (res) {
                  Navigator.of(context).pushNamedAndRemoveUntil(
                   'login', (Route<dynamic> route) => false);
+                // Navigator.pushNamed(context, "home");
+
               }
             },
           )),
