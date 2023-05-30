@@ -3,7 +3,6 @@ import 'package:topicos_proy/src/pages/auth/login_pin.dart';
 import 'package:topicos_proy/src/pages/auth/register.dart';
 import 'package:topicos_proy/src/pages/auth/login.dart';
 import 'package:topicos_proy/src/pages/denuncias/detalle_reclamo.dart';
-import 'package:topicos_proy/src/pages/denuncias/lista_denuncias.dart';
 import 'package:topicos_proy/src/pages/denuncias/lista_reclamos.dart';
 import 'package:topicos_proy/src/pages/denuncias/reclamos.dart';
 import 'package:topicos_proy/src/pages/home.dart';
@@ -18,7 +17,6 @@ class Routes {
     'login': (BuildContext context) => Login(),
     'register': (BuildContext context) => const Register(),
     'camara': (BuildContext context) => const CamaraApp(),
-    'lista': (BuildContext context) => const ListaDenuncias(),
     'reclamo': (BuildContext context) => const Reclamo(),
     'detalle_reclamo': (BuildContext context) => const DetalleReclamo(),
     'map': (BuildContext context) => const MapaGoogle(),
@@ -31,7 +29,6 @@ class Routes {
     'login': 'login',
     'register': 'register',
     'camara': 'camara',
-    'lista': 'lista',
     'reclamo': 'reclamo',
     'detalle_reclamo': 'detalle_reclamo',
     'map': 'map',

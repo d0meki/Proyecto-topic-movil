@@ -17,13 +17,40 @@ class FirebaseReclamo {
     return documentSnapshot.docs;
   }
 
+  Future<List<dynamic>> getReclamoCategoria(String categoria) async {
+    // List reclamoFiltrado = [];
+    QuerySnapshot<dynamic> documentSnapshot =
+        await _reclamos.where('categoria', isEqualTo: categoria).get();
+    // for (var element in documentSnapshot.docs) {
+    //   reclamoFiltrado.add(element.data());
+    // }
+    // print(documentSnapshot.docs[0].data());
+    return documentSnapshot.docs;
+  }
+
+  Future<List<dynamic>> getReclamoEstado(String estado) async {
+    QuerySnapshot<dynamic> documentSnapshot =
+        await _reclamos.where('estado', isEqualTo: estado).get();
+    return documentSnapshot.docs;
+  }
+
   Future<bool> addReclamo(Map<String, dynamic> data) async {
     return await _reclamos
         .add(data)
         .then((value) => true)
         .catchError((onError) => false);
   }
-   Future<dynamic> getReclamo(documentId) async {
+
+  Future<List<dynamic>> getReclamoFecha(
+      Timestamp timestampStart, Timestamp timestampEnd) async {
+    QuerySnapshot<dynamic> documentSnapshot = await _reclamos
+        .where('fecha', isGreaterThanOrEqualTo: timestampStart)
+        .where('fecha', isLessThanOrEqualTo: timestampEnd)
+        .get();
+    return documentSnapshot.docs;
+  }
+
+  Future<dynamic> getReclamo(documentId) async {
     DocumentSnapshot documentSnapshot = await _reclamos.doc(documentId).get();
     return documentSnapshot.data();
   }

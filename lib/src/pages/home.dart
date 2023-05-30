@@ -14,13 +14,12 @@ class HomePage extends StatelessWidget {
           leading: IconButton(
             icon: const Icon(Icons.logout_sharp),
             tooltip: "LogOut",
-            onPressed: ()async {
+            onPressed: () async {
               final res = await authService.signOut();
               if (res) {
-                 Navigator.of(context).pushNamedAndRemoveUntil(
-                  'login', (Route<dynamic> route) => false);
+                Navigator.of(context).pushNamedAndRemoveUntil(
+                    'login', (Route<dynamic> route) => false);
                 // Navigator.pushNamed(context, "home");
-
               }
             },
           )),
@@ -28,7 +27,21 @@ class HomePage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.center,
-          children: const [Text("Welcome to home")],
+          children: [
+            const Text("Welcome to home"),
+            const SizedBox(
+              height: 5,
+            ),
+            FloatingActionButton.extended(
+              heroTag: 2,
+              onPressed: () {
+                Navigator.pushNamed(context, "lista_reclamos");
+              },
+              label: const Text('Ver Reclamos'),
+              icon: const Icon(Icons.remove_red_eye),
+              backgroundColor: Colors.pink,
+            ),
+          ],
         ),
       ),
     );

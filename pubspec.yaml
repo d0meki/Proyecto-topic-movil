@@ -54,6 +54,8 @@ dependencies:
   provider: ^6.0.5
   dio: ^5.1.1
   firebase_storage: ^11.1.0
+  image_cropper: ^4.0.1
+  flutter_date_pickers: ^0.4.2
 dev_dependencies:
   flutter_test:
     sdk: flutter

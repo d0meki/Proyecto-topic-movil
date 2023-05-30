@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:topicos_proy/src/Controllers/usuario_controller.dart';
-import 'package:topicos_proy/src/models/datarecognition.dart';
 import 'package:topicos_proy/src/util/validaciones.dart';
 import 'package:topicos_proy/src/widget/textform.dart';
 import 'package:topicos_proy/src/widget/widgets.dart';
@@ -19,7 +18,7 @@ class Register extends StatefulWidget {
 class _RegisterState extends State<Register> {
   var authService = AuthService();
   final _formKey = GlobalKey<FormState>();
-  late List<DataRecognition> respuesta;
+  // late List<DataRecognition> respuesta;
   late String uuid = '';
   late String imagePath = '';
   late String fileName = '';
@@ -218,10 +217,10 @@ class _RegisterState extends State<Register> {
       await authService.verificarFoto(imagen64, uuid);
       // respuesta = await luxandService.reconocerCara(_imagen64);
       Navigator.pop(context);
-      if (respuesta.isEmpty) {
-        showDialog(
-            context: context, builder: ((context) => const UnregisterUser()));
-      }
+      // if (respuesta.isEmpty) {
+      //   showDialog(
+      //       context: context, builder: ((context) => const UnregisterUser()));
+      // }
       setState(() {
         imagePath = pickedFile.path;
       });

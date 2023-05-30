@@ -117,26 +117,26 @@ class _LoginState extends State<Login> {
                 margin: const EdgeInsets.symmetric(vertical: 30.0),
                 child: Column(
                   children: [
-                    Image.asset(
-                      'assets/img/facial.png',
-                      width: 120.0,
-                    ),
-                    const Text(
-                      "Face Recognition ",
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 22.0,
-                          fontWeight: FontWeight.bold),
-                    ),
-                    Container(
-                      margin: const EdgeInsets.symmetric(vertical: 5.0),
-                      width: 150,
-                      child: const Text(
-                        "Authenticate using your email and password",
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: Colors.white, height: 1.5),
-                      ),
-                    ),
+                    // Image.asset(
+                    //   'assets/img/facial.png',
+                    //   width: 120.0,
+                    // ),
+                    // const Text(
+                    //   "Face Recognition ",
+                    //   style: TextStyle(
+                    //       color: Colors.white,
+                    //       fontSize: 22.0,
+                    //       fontWeight: FontWeight.bold),
+                    // ),
+                    // Container(
+                    //   margin: const EdgeInsets.symmetric(vertical: 5.0),
+                    //   width: 150,
+                    //   child: const Text(
+                    //     "Authenticate using your email and password",
+                    //     textAlign: TextAlign.center,
+                    //     style: TextStyle(color: Colors.white, height: 1.5),
+                    //   ),
+                    // ),
                     Form(
                         key: _formKey,
                         child: Column(

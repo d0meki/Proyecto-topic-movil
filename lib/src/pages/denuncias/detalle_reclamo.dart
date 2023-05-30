@@ -45,7 +45,7 @@ class _DetalleReclamoState extends State<DetalleReclamo> {
                               ),
                               Padding(
                                 padding: const EdgeInsets.all(8.0),
-                                child: Text(snapshot.data['fecha']),
+                                child: Text(snapshot.data['fecha'].toDate().toString()),
                               ),
                               Padding(
                                 padding: const EdgeInsets.all(8.0),
