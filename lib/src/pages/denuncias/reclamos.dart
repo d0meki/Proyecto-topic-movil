@@ -1,5 +1,6 @@
 // ignore_for_file: use_build_context_synchronously
 import 'dart:io';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
@@ -8,6 +9,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:topicos_proy/src/Controllers/reclamo_fire_controller.dart';
 import 'package:topicos_proy/src/widget/textform.dart';
+import 'package:topicos_proy/src/widget/widgets.dart';
 import 'dart:ui' as ui;
 
 class Reclamo extends StatefulWidget {
@@ -17,7 +19,7 @@ class Reclamo extends StatefulWidget {
 }
 
 class _ReclamoState extends State<Reclamo> {
-  var fechaActual = DateTime.now();
+  //VARIABLES DEFINIDAS
   List<String> listaCategorias = [
     "Caminos",
     "Seguridad",
@@ -25,145 +27,14 @@ class _ReclamoState extends State<Reclamo> {
     "Alumbrado",
     "Otros"
   ];
-  String? _selectCategoria;
   final List _images = [];
-  final List _imagesPath = [];
-  late File imageFile;
-  late List<String> urlFotos = [];
+  String? _selectCategoria;
   TextEditingController? _descripcionController;
   TextEditingController? _tituloController;
   final _formKey = GlobalKey<FormState>();
   final picker = ImagePicker();
   var reclamoService = FirebaseReclamo();
-  choceImageGallery() async {
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      CroppedFile? croppedFile = await ImageCropper().cropImage(
-          sourcePath: pickedFile.path,
-          compressFormat: ImageCompressFormat.jpg,
-          uiSettings: [
-            AndroidUiSettings(
-              toolbarTitle: 'Recortar imagen',
-              toolbarColor: Colors.deepOrange,
-              toolbarWidgetColor: Colors.white,
-              initAspectRatio: CropAspectRatioPreset.original,
-              lockAspectRatio: false,
-            ),
-          ],
-          aspectRatioPresets: [
-            CropAspectRatioPreset.original,
-            CropAspectRatioPreset.ratio16x9,
-            CropAspectRatioPreset.ratio5x4,
-            CropAspectRatioPreset.ratio4x3,
-            CropAspectRatioPreset.ratio3x2,
-            CropAspectRatioPreset.square,
-          ],
-          maxWidth: 1024,
-          maxHeight: 800);
-      // final String fileName = pickedFile.path.split('/').last;
-      // final urlImage = await reclamoService.uploadDenunciaStorage(
-      //     File(pickedFile.path), fileName);
-      // urlFotos.add(urlImage);
-      // final Uint8List bytes = data.buffer.asUint8List();
-      final Uint8List bytes = await croppedFile!.readAsBytes();
-      final ui.Codec codec = await ui.instantiateImageCodec(bytes);
-      final ui.FrameInfo frameInfo = await codec.getNextFrame();
-      print(frameInfo.image.width);
-      print(frameInfo.image.height);
-      if (frameInfo.image.width == 1024 && frameInfo.image.width == 800) {
-        print('La imagen debe ser de 1024x800');
-      } else {
-        setState(() {
-          // _images.add(File(pickedFile.path));
-          _images.add(File(croppedFile.path));
-          // print();
-        });
-      }
-    }
-  }
-
-  choceImageCamare() async {
-    final pickedFile = await picker.pickImage(source: ImageSource.camera);
-    if (pickedFile != null) {
-      final String fileName = pickedFile.path.split('/').last;
-      final urlImage = await reclamoService.uploadDenunciaStorage(
-          File(pickedFile.path), fileName);
-      urlFotos.add(urlImage);
-      setState(() {
-        _imagesPath.add(pickedFile.path);
-        _images.add(File(pickedFile.path));
-      });
-    }
-  }
-
-  Future<Position> determinePosition() async {
-    LocationPermission permission;
-    permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        return Future.error('error');
-      }
-    }
-    return await Geolocator.getCurrentPosition();
-  }
-
-  void getCurrentLocation() async {
-    showDialog(
-        context: context,
-        builder: (context) {
-          return const Center(child: CircularProgressIndicator());
-        });
-
-    Position position = await determinePosition();
-    // final reclamosService = ReclamosService();
-    final List fotosReclamos = [];
-
-    for (var element in _images) {
-      final String fileName = element.path.split('/').last;
-      final urlImage = await reclamoService.uploadDenunciaStorage(
-          File(element.path), fileName);
-      fotosReclamos.add(urlImage);
-    }
-
-    final List<String> posicion = [
-      position.latitude.toString(),
-      position.longitude.toString()
-    ];
-
-    Map<String, dynamic> data = {
-      "categoria": _selectCategoria,
-      "descripcion": _descripcionController?.text,
-      "titulo": _tituloController?.text,
-      "estado":'pendiente',
-      "uuid": '1',
-      "posicion": posicion,
-      "fotos": fotosReclamos,
-      "fecha": '${fechaActual.day}-${fechaActual.month}-${fechaActual.year}'
-    };
-    final respuesta = await reclamoService.addReclamo(data);
-    // print(data);
-    // final respuesta = await reclamosService.registrarReclamo(data);
-    if (respuesta) {
-      showDialog(
-          context: context,
-          builder: ((context) => AlertDialog(
-                title: const Text('Success'),
-                content: const Text("reclamo registrado con exito"),
-                actions: [
-                  TextButton(
-                      onPressed: () {
-                        Navigator.pushNamed(context, "lista_reclamos");
-                      },
-                      child: const Text('Yes'))
-                ],
-              )));
-    } else {
-      Navigator.pop(context);
-      // print(respuesta['message']);
-    }
-  }
-
+  //ESTADO DE INICIO
   @override
   void initState() {
     super.initState();
@@ -171,30 +42,31 @@ class _ReclamoState extends State<Reclamo> {
     _tituloController = TextEditingController();
     _selectCategoria = listaCategorias[0];
   }
-
+  //VIEW
   @override
   Widget build(BuildContext context) {
+    final bool showFab = MediaQuery.of(context).viewInsets.bottom == 0.0;
     return Scaffold(
       appBar: AppBar(
-          title: const Padding(
-            padding: EdgeInsets.only(left: 90.0),
-            child: Text('Reclamo'),
-          ),
-          leading: IconButton(
-            icon: const Icon(Icons.close),
-            tooltip: "Cancelar",
-            onPressed: () {
-              Navigator.pop(context, true);
-            },
-          )
-          // actions: [
-          //   IconButton(
-          //     icon: const Icon(Icons.close),
-          //     tooltip: 'Cancelar',
-          //     onPressed: () {},
-          //   ),
-          // ],
-          ),
+        title: const Padding(
+          padding: EdgeInsets.only(left: 90.0),
+          child: Text('Reclamo'),
+        ),
+        leading: IconButton(
+          icon: const Icon(Icons.close),
+          tooltip: "Cancelar",
+          onPressed: () {
+            Navigator.pop(context, true);
+          },
+        ),
+        // actions: [
+        //   IconButton(
+        //     icon: const Icon(Icons.close),
+        //     tooltip: 'Cancelar',
+        //     onPressed: () {},
+        //   ),
+        // ],
+      ),
       body: SingleChildScrollView(
         child: Form(
           key: _formKey,
@@ -387,34 +259,150 @@ class _ReclamoState extends State<Reclamo> {
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        heroTag: 1,
-        onPressed: () {
-          // Navigator.pushNamed(context, "reclamo");
-          // getCurrentLocation();
-          if (_formKey.currentState!.validate()) {
-            if (_images.length >= 1) {
-              print("Guardar");
-              getCurrentLocation();
-            } else {
-              print("Debe elegir imagenes");
-            }
-          } else {
-            print("No valido");
-          }
-        },
-        label: const Text('Guardar y Enviar'),
-        icon: const Icon(Icons.save),
-        backgroundColor: Colors.pink,
-      ),
-      // floatingActionButton: FloatingActionButton(
-      //   onPressed: () async {
-      //      getCurrentLocation();
-      //   },
-      //   tooltip: 'Enviar',
-      //   child: const Icon(Icons.check),
-      // ),
+      //GUARDAR
+      floatingActionButton: showFab
+          ? FloatingActionButton.extended(
+              heroTag: 1,
+              onPressed: () {
+                if (_formKey.currentState!.validate()) {
+                  if (_images.isNotEmpty) {
+                    // print("Guardar");
+                    //  final verificarTexto = reclamoService.verificarTextoOfensivo(_descripcionController!.text);
+                    //  print(verificarTexto);
+                    getCurrentLocation();
+                  } else {
+                    Widgets.alertSnackbar(
+                        context, "Debe elegir almenos una imagen");
+                  }
+                }
+              },
+              label: const Text('Guardar y Enviar'),
+              icon: const Icon(Icons.save),
+              backgroundColor: Colors.pink,
+            )
+          : null,
     );
+  }
+  //METODOS
+  choceImageGallery() async {
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      CroppedFile? croppedFile = await ImageCropper().cropImage(
+          sourcePath: pickedFile.path,
+          compressFormat: ImageCompressFormat.jpg,
+          uiSettings: [
+            AndroidUiSettings(
+              toolbarTitle: 'Recortar imagen',
+              toolbarColor: Colors.deepOrange,
+              toolbarWidgetColor: Colors.white,
+              initAspectRatio: CropAspectRatioPreset.original,
+              lockAspectRatio: false,
+            ),
+          ],
+          aspectRatioPresets: [
+            CropAspectRatioPreset.original,
+            CropAspectRatioPreset.ratio16x9,
+            CropAspectRatioPreset.ratio5x4,
+            CropAspectRatioPreset.ratio4x3,
+            CropAspectRatioPreset.ratio3x2,
+            CropAspectRatioPreset.square,
+          ],
+          maxWidth: 1024,
+          maxHeight: 800);
+      // final String fileName = pickedFile.path.split('/').last;
+      // final urlImage = await reclamoService.uploadDenunciaStorage(
+      //     File(pickedFile.path), fileName);
+      // urlFotos.add(urlImage);
+      // final Uint8List bytes = data.buffer.asUint8List();
+      final Uint8List bytes = await croppedFile!.readAsBytes();
+      final ui.Codec codec = await ui.instantiateImageCodec(bytes);
+      final ui.FrameInfo frameInfo = await codec.getNextFrame();
+      if (frameInfo.image.width == 1024 && frameInfo.image.width == 800) {
+        // print('La imagen debe ser de 1024x800');
+         Widgets.alertSnackbar(
+                        context, "La imagen debe ser de 1024x800");
+      } else {
+        setState(() {
+          _images.add(File(croppedFile.path));
+        });
+      }
+    }
+  }
+
+  choceImageCamare() async {
+    final pickedFile = await picker.pickImage(source: ImageSource.camera);
+    if (pickedFile != null) {
+      // final String fileName = pickedFile.path.split('/').last;
+      // final urlImage = await reclamoService.uploadDenunciaStorage(
+      //     File(pickedFile.path), fileName);
+      // urlFotos.add(urlImage);
+      // setState(() {
+      //   _imagesPath.add(pickedFile.path);
+      //   _images.add(File(pickedFile.path));
+      // });
+    }
+  }
+
+  Future<Position> determinePosition() async {
+    LocationPermission permission;
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        return Future.error('error');
+      }
+    }
+    return await Geolocator.getCurrentPosition();
+  }
+
+  void getCurrentLocation() async {
+    showDialog(
+        context: context,
+        builder: (context) {
+          return const Center(child: CircularProgressIndicator());
+        });
+    Position position = await determinePosition();
+    final List fotosReclamos = [];
+    Timestamp fechaActual = Timestamp.fromDate(DateTime.now());
+    for (var element in _images) {
+      final String fileName = element.path.split('/').last;
+      final urlImage = await reclamoService.uploadDenunciaStorage(
+          File(element.path), fileName);
+      fotosReclamos.add(urlImage);
+    }
+    final List<String> posicion = [
+      position.latitude.toString(),
+      position.longitude.toString()
+    ];
+    Map<String, dynamic> data = {
+      "categoria": _selectCategoria,
+      "descripcion": _descripcionController?.text,
+      "titulo": _tituloController?.text,
+      "estado": 'pendiente',
+      "uuid": '1',
+      "posicion": posicion,
+      "fotos": fotosReclamos,
+      "fecha": fechaActual
+      // "fecha": '${fechaActual.day}-${fechaActual.month}-${fechaActual.year}'
+    };
+    final respuesta = await reclamoService.addReclamo(data);
+    if (respuesta) {
+      showDialog(
+          context: context,
+          builder: ((context) => AlertDialog(
+                title: const Text('Success'),
+                content: const Text("reclamo registrado con exito"),
+                actions: [
+                  TextButton(
+                      onPressed: () {
+                        Navigator.pushNamed(context, "lista_reclamos");
+                      },
+                      child: const Text('Yes'))
+                ],
+              )));
+    } else {
+      Navigator.pop(context);
+    }
   }
 
   _selectComboBoxCategoria() {
@@ -443,25 +431,3 @@ class _ReclamoState extends State<Reclamo> {
     );
   }
 }
-
-
- // void subirImagemes() async {
-    // final reclamosService = ReclamosService();
-    // final respuesta =
-    //     await reclamosService.uploadAvatar(_imagesPath.elementAt(0));
-    // await reclamosService.uploadAvatar(_imagesPath.elementAt(0));
-    // await reclamosService.subirFotos(_imagesPath);
-    // print(respuesta['status']);
-    // final List<String> images64 = [];
-    // for (var i = 0; i < _imagesPath.length; i++) {
-    //   List<int> bytes = File(_imagesPath.elementAt(i)).readAsBytesSync();
-    //   images64.add(base64.encode(bytes));
-    // }
-    // Map<String, dynamic> datitos = {
-    //   "reclamo_id": '1',
-    //   "image": images64,
-    // };
-    // print(datitos);
-    // final respuesta = await reclamosService.uploadPhotos(datitos);
-    // print(respuesta['status']);
- // }
