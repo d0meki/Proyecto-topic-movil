@@ -7,7 +7,7 @@ import 'package:http/http.dart' as http;
 
 class LuxandService {
   final baseUrl = 'https://api.luxand.cloud';
-  final token = '38c466edd5f14894950fa82570c8da5d';
+  final token = '65f463b743224c22bacec31aea809441';
   LuxandService();
 
   Future listarPersonas() async {

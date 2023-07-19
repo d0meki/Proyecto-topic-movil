@@ -1,22 +1,17 @@
-import 'package:carousel_slider/carousel_slider.dart';
+// ignore_for_file: use_build_context_synchronously, must_be_immutable
+
 import 'package:flutter/material.dart';
-import 'package:topicos_proy/src/Controllers/reclamo_fire_controller.dart';
+import 'package:carousel_slider/carousel_slider.dart';//PARA EL CARRUSEL DE IAMGENES
+import 'package:topicos_proy/src/Controllers/reclamoService.dart';//CONTROLADOR DONNDE CONSUMIMOS LAS APIS
+import 'package:topicos_proy/src/widget/widgets.dart';// Widgets
 
-class DetalleReclamo extends StatefulWidget {
-  const DetalleReclamo({super.key});
-
-  @override
-  State<DetalleReclamo> createState() => _DetalleReclamoState();
-}
-
-class _DetalleReclamoState extends State<DetalleReclamo> {
-
-  var reclamoService = FirebaseReclamo();
- 
+class DetalleReclamo extends StatelessWidget {
+  DetalleReclamo({super.key});
+  var reclamoService = ServiceReclamo();
   @override
   Widget build(BuildContext context) {
     dynamic documentId = ModalRoute.of(context)!.settings.arguments;
-   
+
     return Scaffold(
         appBar: AppBar(title: const Center(child: Text("Detalle del Reclamo"))),
         body: FutureBuilder(
@@ -41,11 +36,23 @@ class _DetalleReclamoState extends State<DetalleReclamo> {
                             children: [
                               Padding(
                                 padding: const EdgeInsets.all(8.0),
-                                child: Text(snapshot.data['categoria']),
+                                child: Text(
+                                    'Categoria: ${snapshot.data['categoria']}'),
                               ),
                               Padding(
                                 padding: const EdgeInsets.all(8.0),
-                                child: Text(snapshot.data['fecha'].toDate().toString()),
+                                child:
+                                    Text('Titulo: ${snapshot.data['titulo']}'),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child:
+                                    Text('Estado: ${snapshot.data['estado']}'),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text(
+                                    snapshot.data['fecha'].toDate().toString()),
                               ),
                               Padding(
                                 padding: const EdgeInsets.all(8.0),
@@ -93,6 +100,17 @@ class _DetalleReclamoState extends State<DetalleReclamo> {
                             );
                     },
                   ),
+                  ElevatedButton(
+                      onPressed: () async {
+                        if (snapshot.data['estado'] == 'pendiente') {
+                          await reclamoService.eliminarReclamo(documentId);
+                          Navigator.pushNamed(context, "lista_reclamos");
+                        } else {
+                          Widgets.alertSnackbar(context,
+                              "No se puede eliminar un reclamo de estado no pendiente");
+                        }
+                      },
+                      child: Text('Eliminar'))
                 ],
               );
             }

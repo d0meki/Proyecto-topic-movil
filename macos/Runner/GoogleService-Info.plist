@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>318837877708-nmcu7pindilqondlgqdc0m4mfp7j5f0u.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.318837877708-nmcu7pindilqondlgqdc0m4mfp7j5f0u</string>
+	<key>API_KEY</key>
+	<string>AIzaSyBLTm4r92Cg-hTCLB_nrra5ifpygN2wjlw</string>
+	<key>GCM_SENDER_ID</key>
+	<string>318837877708</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.example.topicosProy</string>
+	<key>PROJECT_ID</key>
+	<string>prueba-438c5</string>
+	<key>STORAGE_BUCKET</key>
+	<string>prueba-438c5.appspot.com</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:318837877708:ios:bf013963d66b49a1ab4b69</string>
+	<key>DATABASE_URL</key>
+	<string>https://prueba-438c5-default-rtdb.firebaseio.com</string>
+</dict>
+</plist>

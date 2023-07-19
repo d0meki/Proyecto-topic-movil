@@ -1,6 +1,6 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:topicos_proy/src/Controllers/reclamo_fire_controller.dart';
+import 'package:cloud_firestore/cloud_firestore.dart'; //para el uso de Timestamp formato de fechas aceptadas en firebase
+import 'package:topicos_proy/src/Controllers/reclamoService.dart'; //CONTROLADOR DONNDE CONSUMIMOS LAS APIS
 
 class ReclamoListView extends StatefulWidget {
   const ReclamoListView({super.key});
@@ -8,36 +8,41 @@ class ReclamoListView extends StatefulWidget {
   @override
   State<ReclamoListView> createState() => _ReclamoListViewState();
 }
+
 class _ReclamoListViewState extends State<ReclamoListView> {
-  var reclamosService = FirebaseReclamo();
+  var reclamosService = ServiceReclamo();
   late Future<List<dynamic>> lista;
   @override
   void initState() {
-    lista = reclamosService.getReclamos();
+    // lista = reclamosService.getReclamos();
+    lista = reclamosService.getReclamosPorUsuarios();
     super.initState();
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Lista de Reclamos'), 
-      leading:  IconButton(
-            onPressed: () {
-              Navigator.pushNamed(context, "home");
-            },
-            icon: const Icon(Icons.home)),
-      actions: [
-        IconButton(
-            onPressed: () {
-              Navigator.pushNamed(context, "reclamo");
-            },
-            icon: const Icon(Icons.add))
-      ]),
+      appBar: AppBar(
+          title: const Text('Lista de Reclamos'),
+          leading: IconButton(
+              onPressed: () {
+                Navigator.pushNamed(context, "home");
+              },
+              icon: const Icon(Icons.home)),
+          actions: [
+            IconButton(
+                onPressed: () {
+                  Navigator.pushNamed(context, "reclamo");
+                },
+                icon: const Icon(Icons.add))
+          ]),
       //LISTA O HISTORIA DE RECLAMO
       body: FutureBuilder(
         future: lista,
         builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
           if (snapshot.hasData) {
-            return ListView.separated(
+            if (snapshot.data.length > 0) {
+              return ListView.separated(
               itemCount: snapshot.data.length,
               separatorBuilder: (context, index) {
                 return const Divider(
@@ -71,6 +76,9 @@ class _ReclamoListViewState extends State<ReclamoListView> {
                 );
               },
             );
+            }else{
+             return const Center(child: Text('No hay registros'),);
+            }
           }
           return const Center(
             child: CircularProgressIndicator(),
@@ -82,20 +90,18 @@ class _ReclamoListViewState extends State<ReclamoListView> {
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           SizedBox(
-            width: 60, // Ajusta el ancho del botón según tus necesidades
+            width: 90, // Ajusta el ancho del botón según tus necesidades
             height: 50,
             child: FloatingActionButton.extended(
               heroTag: 1,
               onPressed: () {
-                List<String> listaEstados = [
-                  "pendiente",
-                  "En proceso",
-                  "terminado",
-                ];
-                filtrarPorEstado(context, listaEstados);
+                filtrarPorEstado(context);
               },
+              shape:const RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(0.0)),
+              ),
               label: const Text('Estado'),
-              backgroundColor: Colors.pink,
+              backgroundColor: Colors.lightBlueAccent,
             ),
           ),
           const SizedBox(
@@ -107,32 +113,31 @@ class _ReclamoListViewState extends State<ReclamoListView> {
             child: FloatingActionButton.extended(
               heroTag: 2,
               onPressed: () async {
-                List<String> listaCategorias = [
-                  "Caminos",
-                  "Seguridad",
-                  "Basuras",
-                  "Alumbrado",
-                  "Otros"
-                ];
-                filtrarPorCategoria(context, listaCategorias);
+                filtrarPorCategoria(context);
               },
+              shape:const RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(0.0)),
+              ),
               label: const Text('Categoria'),
-              backgroundColor: Colors.pink,
+              backgroundColor: Colors.lightBlueAccent,
             ),
           ),
           const SizedBox(
             height: 5,
           ),
           SizedBox(
-            width: 50, // Ajusta el ancho del botón según tus necesidades
+            width: 90, // Ajusta el ancho del botón según tus necesidades
             height: 50, // Ajusta la altura del botón según tus necesidades
             child: FloatingActionButton.extended(
               heroTag: 3,
               onPressed: () {
                 _showDatePicker();
               },
+              shape:const RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(0.0)),
+              ),
               label: const Text('Fecha'),
-              backgroundColor: Colors.pink,
+              backgroundColor: Colors.lightBlueAccent,
             ),
           ),
         ],
@@ -141,73 +146,103 @@ class _ReclamoListViewState extends State<ReclamoListView> {
   }
 
 //METODOS DE FILTRADO
-  Future<dynamic> filtrarPorCategoria(BuildContext context, List<String> listaCategorias) {
+  Future<dynamic> filtrarPorCategoria(BuildContext context) {
     return showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return AlertDialog(
-                      title: const Text('Categorias'),
-                      content: SizedBox(
-                        height: 300.0, // Change as per your requirement
-                        width: 300.0, // Change as per your requirement
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Categorias'),
+            content: SizedBox(
+                height: 300.0, // Change as per your requirement
+                width: 300.0, // Change as per your requirement
+                child: StreamBuilder(
+                  stream: reclamosService.categorias.snapshots(),
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData) {
+                      const Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    } else {
+                      final cates = snapshot.data?.docs.reversed.toList();
+                      return Scrollbar(
                         child: ListView.builder(
                           shrinkWrap: true,
-                          itemCount: listaCategorias.length,
+                          itemCount: cates?.length,
                           itemBuilder: (BuildContext context, int index) {
                             return GestureDetector(
                               child: ListTile(
-                                title: Text(listaCategorias[index]),
+                                title: Text(cates?[index]['nombre']),
                               ),
                               onTap: () {
-                                // print(listaCategorias[index]);
                                 Navigator.pop(context);
                                 lista = reclamosService.getReclamoCategoria(
-                                    listaCategorias[index]);
+                                    cates?[index]['nombre']);
                                 setState(() {});
                               },
                             );
                           },
                         ),
-                      ),
+                      );
+                    }
+                    return const Center(
+                      child: CircularProgressIndicator(),
                     );
-                  });
+                  },
+                )),
+          );
+        });
   }
 
-  Future<dynamic> filtrarPorEstado(BuildContext context, List<String> listaEstados) {
+  Future<dynamic> filtrarPorEstado(BuildContext context) {
     return showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return AlertDialog(
-                      title: const Text('Estados'),
-                      content: SizedBox(
-                        height: 150.0, // Change as per your requirement
-                        width: 250.0, // Change as per your requirement
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Estados'),
+            content: SizedBox(
+                height: 150.0, // Change as per your requirement
+                width: 250.0, // Change as per your requirement
+                child: StreamBuilder(
+                  stream: reclamosService.estados.snapshots(),
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData) {
+                      const Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    } else {
+                      final estados = snapshot.data?.docs.reversed.toList();
+                      return Scrollbar(
                         child: ListView.builder(
                           shrinkWrap: true,
-                          itemCount: listaEstados.length,
+                          itemCount: estados?.length,
                           itemBuilder: (BuildContext context, int index) {
                             return GestureDetector(
                               child: ListTile(
-                                title: Text(listaEstados[index]),
+                                title: Text(estados?[index]['nombre']),
                               ),
                               onTap: () {
-                                // print(listaCategorias[index]);
                                 Navigator.pop(context);
-                                lista = reclamosService
-                                    .getReclamoEstado(listaEstados[index]);
+                                lista = reclamosService.getReclamoEstado(
+                                    estados?[index]['nombre']);
                                 setState(() {});
                               },
                             );
                           },
                         ),
-                      ),
+                      );
+                    }
+                    return const Center(
+                      child: CircularProgressIndicator(),
                     );
-                  });
+                  },
+                )),
+          );
+        });
   }
 
   void _showDatePicker() async {
-     DateTimeRange dateRAnge =
-      DateTimeRange(start: DateTime(2023, 05, 28), end: DateTime.now());
+    DateTimeRange dateRAnge =
+        DateTimeRange(start: DateTime(2023, 05, 28), end: DateTime.now());
     DateTimeRange? newDateRange = await showDateRangePicker(
       context: context,
       initialDateRange: dateRAnge,
@@ -220,7 +255,6 @@ class _ReclamoListViewState extends State<ReclamoListView> {
     Timestamp timestampStart = Timestamp.fromDate(start);
     Timestamp timestampEnd = Timestamp.fromDate(end);
     lista = reclamosService.getReclamoFecha(timestampStart, timestampEnd);
-    setState(() {
-    });
+    setState(() {});
   }
 }

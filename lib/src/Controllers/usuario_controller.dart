@@ -4,11 +4,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:topicos_proy/src/models/datarecognition.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthService {
   //INI PROPIEDADES DEL AUTH
   final baseUrl = 'https://api.luxand.cloud';
-  final token = 'd3b1e27cd4c544b19e48a65125ca0112';
+  final token = '65f463b743224c22bacec31aea809441';
   final CollectionReference _users =
       FirebaseFirestore.instance.collection('users');
   final storage = FirebaseStorage.instance;
@@ -66,6 +67,18 @@ class AuthService {
             "msg":
                 "uid: ${userCredential.user!.uid}, email: ${userCredential.user!.email}"
           };
+          /* final SharedPreferences prefs = await SharedPreferences.getInstance();
+          await prefs.setString('uuid', userCredential.user!.uid); */
+          SharedPreferences sharedPreferences =
+              await SharedPreferences.getInstance();
+          final List<String> items =
+              sharedPreferences.getStringList('acces_token')!;
+          items.add(userCredential.user!.uid);
+          await sharedPreferences.setStringList('acces_token', items);
+           Map<String, dynamic> data = {'phoneToken': items[0]};
+            await users.doc(documentSnapshot.docs[0].id).update(data);
+
+
           return respuesta;
           //FIN SI ESTA BLOQUEADO Y TERMINÓ SU TIEMPO DE BLOQUEO, SE DESBLOQUEA AL USUARIO
         } else {
@@ -83,12 +96,23 @@ class AuthService {
         //FIN SI ESTA BLOQUEDDO
       } else {
         //INI SI NO ESTÁ BLOQUEADO Y PASA TODAS LAS VALIDACIONES, EL USUARIO SE LOGEA
+
         respuesta = {
           "status": true,
           "reason": "login",
           "msg":
               "uid: ${userCredential.user!.uid}, email: ${userCredential.user!.email}"
         };
+/*         final SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setString('uuid', userCredential.user!.uid); */
+        SharedPreferences sharedPreferences =
+            await SharedPreferences.getInstance();
+        final List<String> items =
+            sharedPreferences.getStringList('acces_token')!;
+        items.add(userCredential.user!.uid);
+        await sharedPreferences.setStringList('acces_token', items);
+          Map<String, dynamic> data = {'phoneToken': items[0]};
+            await users.doc(documentSnapshot.docs[0].id).update(data);
         return respuesta;
         //FIN SI NO ESTÁ BLOQUEADO Y PASA TODAS LAS VALIDACIONES, EL USUARIO SE LOGEA
       }
@@ -219,6 +243,7 @@ class AuthService {
     Map<String, dynamic> resp;
     QuerySnapshot<dynamic> documentSnapshotCi =
         await _users.where('ci', isEqualTo: ci).get();
+    print(documentSnapshotCi.size);
     if (documentSnapshotCi.size == 0) {
       resp = {
         "match": false,
@@ -247,6 +272,8 @@ class AuthService {
       if (data.isEmpty) {
         return false;
       } else {
+        print(uuid);
+        print(data[0].uuid);
         if (data[0].uuid == uuid) {
           return true;
         } else {
@@ -272,7 +299,10 @@ class AuthService {
       await user?.updatePassword(newPassword);
       QuerySnapshot<dynamic> documentSnapshot =
           await _users.where('email', isEqualTo: user?.email).get();
-      Map<String, dynamic> data = {'changePassword': true,"password":newPassword};
+      Map<String, dynamic> data = {
+        'changePassword': true,
+        "password": newPassword
+      };
       await users.doc(documentSnapshot.docs[0].id).update(data);
       respuesta = {
         "status": true,

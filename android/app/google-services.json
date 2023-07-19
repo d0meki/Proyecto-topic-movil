@@ -1,0 +1,155 @@
+{
+  "project_info": {
+    "project_number": "318837877708",
+    "firebase_url": "https://prueba-438c5-default-rtdb.firebaseio.com",
+    "project_id": "prueba-438c5",
+    "storage_bucket": "prueba-438c5.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:318837877708:android:35b7966f44739ad4ab4b69",
+        "android_client_info": {
+          "package_name": "com.example.fire_base_evento"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "318837877708-mim284m6fu5p82shqdckh7sf4i5298b3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCRg6I7FLiL1Zyo5iLnr_T8njdHOPa5EQ0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "318837877708-mim284m6fu5p82shqdckh7sf4i5298b3.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "318837877708-7t3jdjm33v5tb9n3dbl681l1gg371tup.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.fireBaseEvento"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:318837877708:android:1c67fe37039d1b9fab4b69",
+        "android_client_info": {
+          "package_name": "com.example.flutter_firebase"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "318837877708-mim284m6fu5p82shqdckh7sf4i5298b3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCRg6I7FLiL1Zyo5iLnr_T8njdHOPa5EQ0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "318837877708-mim284m6fu5p82shqdckh7sf4i5298b3.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "318837877708-7t3jdjm33v5tb9n3dbl681l1gg371tup.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.fireBaseEvento"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:318837877708:android:d2b4fd0c52875158ab4b69",
+        "android_client_info": {
+          "package_name": "com.example.topicos_proy"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "318837877708-mim284m6fu5p82shqdckh7sf4i5298b3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCRg6I7FLiL1Zyo5iLnr_T8njdHOPa5EQ0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "318837877708-mim284m6fu5p82shqdckh7sf4i5298b3.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "318837877708-7t3jdjm33v5tb9n3dbl681l1gg371tup.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.fireBaseEvento"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:318837877708:android:b655b44c9589109fab4b69",
+        "android_client_info": {
+          "package_name": "topico_proy_.final"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "318837877708-mim284m6fu5p82shqdckh7sf4i5298b3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCRg6I7FLiL1Zyo5iLnr_T8njdHOPa5EQ0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "318837877708-mim284m6fu5p82shqdckh7sf4i5298b3.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "318837877708-7t3jdjm33v5tb9n3dbl681l1gg371tup.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.fireBaseEvento"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,16 +1,17 @@
-// ignore_for_file: use_build_context_synchronously
-import 'dart:io';
-import 'package:cloud_firestore/cloud_firestore.dart';
+// ignore_for_file: use_build_context_synchronously, unrelated_type_equality_checks
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:image_cropper/image_cropper.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:carousel_slider/carousel_slider.dart';
-import 'package:topicos_proy/src/Controllers/reclamo_fire_controller.dart';
-import 'package:topicos_proy/src/widget/textform.dart';
-import 'package:topicos_proy/src/widget/widgets.dart';
-import 'dart:ui' as ui;
+import 'package:cloud_firestore/cloud_firestore.dart'; //para el uso de Timestamp formato de fechas aceptadas en firebase
+import 'package:flutter/services.dart'; // PARA EL USO DE Uint8List (convierte la imagen en bytes)
+import 'package:geolocator/geolocator.dart'; // UBICACION
+import 'package:image_cropper/image_cropper.dart'; //PARA REDIMENCIONAR IMAGENES
+import 'package:image_picker/image_picker.dart'; // PARA CAPUTRAR LA IMAGEN DE GALERIA O CAMARA
+import 'package:carousel_slider/carousel_slider.dart'; //PARA EL CARRUSEL DE IMAGENES
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:topicos_proy/src/Controllers/reclamoService.dart'; // CONTROLADOR DONNDE CONSUMIMOS LAS APIS
+import 'package:topicos_proy/src/widget/textform.dart'; // widget
+import 'package:topicos_proy/src/widget/widgets.dart'; // widget
+import 'dart:io'; //MANEJO DE ARCHIVOS
+import 'dart:ui' as ui; //PARA OBTENER LAS DIMENCIONES EXACTAS DE LA IMAGEN
 
 class Reclamo extends StatefulWidget {
   const Reclamo({super.key});
@@ -20,28 +21,23 @@ class Reclamo extends StatefulWidget {
 
 class _ReclamoState extends State<Reclamo> {
   //VARIABLES DEFINIDAS
-  List<String> listaCategorias = [
-    "Caminos",
-    "Seguridad",
-    "Basuras",
-    "Alumbrado",
-    "Otros"
-  ];
   final List _images = [];
-  String? _selectCategoria;
+  String _selectCategoria = "0";
   TextEditingController? _descripcionController;
   TextEditingController? _tituloController;
   final _formKey = GlobalKey<FormState>();
   final picker = ImagePicker();
-  var reclamoService = FirebaseReclamo();
+  ServiceReclamo reclamoService = ServiceReclamo();
+
   //ESTADO DE INICIO
   @override
   void initState() {
     super.initState();
     _descripcionController = TextEditingController();
     _tituloController = TextEditingController();
-    _selectCategoria = listaCategorias[0];
+    // categoriaLista =  reclamoService.getCategorias();
   }
+
   //VIEW
   @override
   Widget build(BuildContext context) {
@@ -85,19 +81,19 @@ class _ReclamoState extends State<Reclamo> {
                 itemBuilder: (ctx, index, realIdx) {
                   return _images.isNotEmpty
                       ? Container(
-                          color: Colors.blueGrey,
+                          color: Colors.white,
                           child: Container(
                               decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(8),
-                                  color: Colors.grey,
+                                  color: Colors.white,
                                   image: DecorationImage(
                                       image: FileImage(_images[index])))))
                       : Container(
-                          color: Colors.blueGrey,
+                          color: Colors.white,
                           child: Container(
                               decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(8),
-                                  color: Colors.grey,
+                                  color: Colors.white,
                                   image: const DecorationImage(
                                       image: NetworkImage(
                                           "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSKv97i2txLSKTCqwYH-3znwwNtuVQqAS1Xtq377G7r7APyz6IWhUobssxIxG7BKQ8eNhI&usqp=CAU")))),
@@ -110,7 +106,7 @@ class _ReclamoState extends State<Reclamo> {
               Padding(
                 padding: const EdgeInsets.only(right: 100.0, left: 100.0),
                 child: RawMaterialButton(
-                  fillColor: const Color.fromARGB(155, 4, 44, 247),
+                  fillColor: Colors.lightBlueAccent,
                   elevation: 0.0,
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(50)),
@@ -225,20 +221,22 @@ class _ReclamoState extends State<Reclamo> {
                           style: TextStyle(
                               fontSize: 14, fontWeight: FontWeight.bold)),
                     ),
+
+                    // MiWidget()
                     Padding(
                         padding: const EdgeInsets.only(left: 5),
-                        child: Center(
-                          child: _selectComboBoxCategoria(),
-                        )),
+                        child: Center(child: _obtenerCategorias())),
                   ]),
                 ),
               ),
+              // Padding(padding: const EdgeInsets.all(8.0),child: Text('$cantidadDeCaracteres'),),
               Padding(
                 padding: const EdgeInsets.only(left: 10.0, right: 10.0),
                 child: TextFormField(
                   controller: _descripcionController,
                   minLines: 6,
                   maxLines: null,
+                  maxLength: 512,
                   keyboardType: TextInputType.multiline,
                   decoration: const InputDecoration(
                     alignLabelWithHint: true,
@@ -263,13 +261,35 @@ class _ReclamoState extends State<Reclamo> {
       floatingActionButton: showFab
           ? FloatingActionButton.extended(
               heroTag: 1,
-              onPressed: () {
+              onPressed: () async {
                 if (_formKey.currentState!.validate()) {
                   if (_images.isNotEmpty) {
-                    // print("Guardar");
-                    //  final verificarTexto = reclamoService.verificarTextoOfensivo(_descripcionController!.text);
-                    //  print(verificarTexto);
+                    showDialog(
+                        context: context,
+                        builder: (context) {
+                          return const Center(
+                              child: CircularProgressIndicator());
+                        });
+                    print("Guardar");
                     getCurrentLocation();
+                    /* final verificarTexto =
+                        await reclamoService.verificarTextoOfensivoDos(
+                            _descripcionController!.text);
+                    Navigator.pop(context);
+                    if (verificarTexto.toUpperCase() == 'FALSO.' ||
+                        verificarTexto.toUpperCase() == 'FALSO') {
+                      print("Guardar");
+                      getCurrentLocation();
+                    } else {
+                      if (verificarTexto.toUpperCase() == 'VERDADERO.' ||
+                          verificarTexto.toUpperCase() == 'VERDADERO') {
+                        Widgets.alertSnackbar(context,
+                            "Descripcion no debe contener lenguaje ofensivo");
+                      } else {
+                        Widgets.alertSnackbar(
+                            context, "Ha sucedido algun error");
+                      }
+                    } */
                   } else {
                     Widgets.alertSnackbar(
                         context, "Debe elegir almenos una imagen");
@@ -278,11 +298,12 @@ class _ReclamoState extends State<Reclamo> {
               },
               label: const Text('Guardar y Enviar'),
               icon: const Icon(Icons.save),
-              backgroundColor: Colors.pink,
+              backgroundColor: Colors.lightBlueAccent,
             )
           : null,
     );
   }
+
   //METODOS
   choceImageGallery() async {
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
@@ -319,8 +340,7 @@ class _ReclamoState extends State<Reclamo> {
       final ui.FrameInfo frameInfo = await codec.getNextFrame();
       if (frameInfo.image.width == 1024 && frameInfo.image.width == 800) {
         // print('La imagen debe ser de 1024x800');
-         Widgets.alertSnackbar(
-                        context, "La imagen debe ser de 1024x800");
+        Widgets.alertSnackbar(context, "La imagen debe ser de 1024x800");
       } else {
         setState(() {
           _images.add(File(croppedFile.path));
@@ -361,73 +381,89 @@ class _ReclamoState extends State<Reclamo> {
         builder: (context) {
           return const Center(child: CircularProgressIndicator());
         });
-    Position position = await determinePosition();
     final List fotosReclamos = [];
     Timestamp fechaActual = Timestamp.fromDate(DateTime.now());
+    //VERIFICANDO QUE NO SE HAGAN MAS DE 2 DENUNCIAS DEL MISMO TIPO EN EL MISMO DIA
+    final existeDosReclamos =
+        await reclamoService.reclamoNoRepetidoElMismoDia(_selectCategoria);
+    Navigator.pop(context);
+    if (existeDosReclamos) {
+      Widgets.alertSnackbar(
+          context, "ya existen dos reclamos de la misma categoria");
+      return;
+    }
+    //OBTENER POSICION
+    Position position = await determinePosition();
+    final List<String> posicion = [
+      position.latitude.toString(),
+      position.longitude.toString()
+    ];
+    //OBTENER LOS ARCHIVOS SELECCIONADOS EN EL TEMPORAL Y MANDAR A VERIFICAR CON EL SERVICIO
     for (var element in _images) {
       final String fileName = element.path.split('/').last;
       final urlImage = await reclamoService.uploadDenunciaStorage(
           File(element.path), fileName);
       fotosReclamos.add(urlImage);
     }
-    final List<String> posicion = [
-      position.latitude.toString(),
-      position.longitude.toString()
-    ];
+    /* final respuestaVerificarFotos =
+        await reclamoService.verificarFotoQueCoinsida(
+            _descripcionController!.text, fotosReclamos[0]);
+    if (respuestaVerificarFotos.toUpperCase() == 'FALSO' ||
+        respuestaVerificarFotos.toUpperCase() == 'FALSO.') {
+      Widgets.alertSnackbar(
+          context, "La foto no coinside con la descripcion del reclamo");
+      Navigator.pushNamed(context, "lista_reclamos");
+      return;
+    } */
+    //CONSTRUIMOS LA DATA CON LOS DATOS DEL FORMULARIO Y ENVIAR AL SERVICIO PARA AÑADIRLOS A LA BD
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    final List<String> items = sharedPreferences.getStringList('acces_token')!;
+    final uid = items[1];
     Map<String, dynamic> data = {
       "categoria": _selectCategoria,
       "descripcion": _descripcionController?.text,
       "titulo": _tituloController?.text,
       "estado": 'pendiente',
-      "uuid": '1',
+      "uuid": uid,
       "posicion": posicion,
       "fotos": fotosReclamos,
       "fecha": fechaActual
-      // "fecha": '${fechaActual.day}-${fechaActual.month}-${fechaActual.year}'
     };
     final respuesta = await reclamoService.addReclamo(data);
     if (respuesta) {
-      showDialog(
-          context: context,
-          builder: ((context) => AlertDialog(
-                title: const Text('Success'),
-                content: const Text("reclamo registrado con exito"),
-                actions: [
-                  TextButton(
-                      onPressed: () {
-                        Navigator.pushNamed(context, "lista_reclamos");
-                      },
-                      child: const Text('Yes'))
-                ],
-              )));
+      Navigator.pushNamed(context, "lista_reclamos");
+      Widgets.alertSnackbar(context, "Su reclamo se registró con exito!");
     } else {
       Navigator.pop(context);
+      Widgets.alertSnackbar(context, "Algo salio mal!");
     }
   }
 
-  _selectComboBoxCategoria() {
-    return DropdownButton<String>(
-      value: _selectCategoria,
-      icon: const Icon(Icons.arrow_downward),
-      elevation: 16,
-      style: const TextStyle(color: Colors.deepPurple),
-      borderRadius: BorderRadius.circular(2),
-      focusColor: Colors.blue,
-      underline: Container(
-        height: 2,
-        color: Colors.blue,
-      ),
-      onChanged: (String? newValue) {
-        setState(() {
-          _selectCategoria = newValue!;
-        });
-      },
-      items: listaCategorias.map<DropdownMenuItem<String>>((String value) {
-        return DropdownMenuItem<String>(
-          value: value,
-          child: Text(value),
-        );
-      }).toList(),
-    );
+  _obtenerCategorias() {
+    return StreamBuilder(
+        builder: (context, snapshot) {
+          List<DropdownMenuItem> categoriaItem = [];
+          categoriaItem.add(const DropdownMenuItem(
+              value: "0", child: Text("Seleccion categoria")));
+          if (!snapshot.hasData) {
+           const CircularProgressIndicator();
+          } else {
+            final cates = snapshot.data?.docs.reversed.toList();
+            for (var cat in cates!) {
+              categoriaItem.add(DropdownMenuItem(
+                  value: cat['nombre'], child: Text(cat['nombre'])));
+            }
+          }
+          return DropdownButton(
+              items: categoriaItem,
+              value: _selectCategoria,
+              onChanged: (catValue) {
+                setState(() {
+                  _selectCategoria = catValue;
+                });
+                // print(_selectCategoria);
+              });
+        },
+        stream: reclamoService.categorias.snapshots());
   }
 }

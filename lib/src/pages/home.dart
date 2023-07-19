@@ -28,10 +28,6 @@ class HomePage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text("Welcome to home"),
-            const SizedBox(
-              height: 5,
-            ),
             FloatingActionButton.extended(
               heroTag: 2,
               onPressed: () {
@@ -39,7 +35,7 @@ class HomePage extends StatelessWidget {
               },
               label: const Text('Ver Reclamos'),
               icon: const Icon(Icons.remove_red_eye),
-              backgroundColor: Colors.pink,
+              backgroundColor: Colors.lightBlueAccent,
             ),
           ],
         ),

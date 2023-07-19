@@ -25,10 +25,7 @@ class DefaultFirebaseOptions {
       case TargetPlatform.iOS:
         return ios;
       case TargetPlatform.macOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for macos - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return macos;
       case TargetPlatform.windows:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for windows - '
@@ -52,24 +49,39 @@ class DefaultFirebaseOptions {
     messagingSenderId: '318837877708',
     projectId: 'prueba-438c5',
     authDomain: 'prueba-438c5.firebaseapp.com',
+    databaseURL: 'https://prueba-438c5-default-rtdb.firebaseio.com',
     storageBucket: 'prueba-438c5.appspot.com',
+    measurementId: 'G-NXKZSQQMY7',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyCRg6I7FLiL1Zyo5iLnr_T8njdHOPa5EQ0',
-    appId: '1:318837877708:android:35b7966f44739ad4ab4b69',
+    appId: '1:318837877708:android:d2b4fd0c52875158ab4b69',
     messagingSenderId: '318837877708',
     projectId: 'prueba-438c5',
+    databaseURL: 'https://prueba-438c5-default-rtdb.firebaseio.com',
     storageBucket: 'prueba-438c5.appspot.com',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyBLTm4r92Cg-hTCLB_nrra5ifpygN2wjlw',
-    appId: '1:318837877708:ios:83f8ee7de83c9801ab4b69',
+    appId: '1:318837877708:ios:bf013963d66b49a1ab4b69',
     messagingSenderId: '318837877708',
     projectId: 'prueba-438c5',
+    databaseURL: 'https://prueba-438c5-default-rtdb.firebaseio.com',
     storageBucket: 'prueba-438c5.appspot.com',
-    iosClientId: '318837877708-7t3jdjm33v5tb9n3dbl681l1gg371tup.apps.googleusercontent.com',
-    iosBundleId: 'com.example.fireBaseEvento',
+    iosClientId: '318837877708-nmcu7pindilqondlgqdc0m4mfp7j5f0u.apps.googleusercontent.com',
+    iosBundleId: 'com.example.topicosProy',
+  );
+
+  static const FirebaseOptions macos = FirebaseOptions(
+    apiKey: 'AIzaSyBLTm4r92Cg-hTCLB_nrra5ifpygN2wjlw',
+    appId: '1:318837877708:ios:bf013963d66b49a1ab4b69',
+    messagingSenderId: '318837877708',
+    projectId: 'prueba-438c5',
+    databaseURL: 'https://prueba-438c5-default-rtdb.firebaseio.com',
+    storageBucket: 'prueba-438c5.appspot.com',
+    iosClientId: '318837877708-nmcu7pindilqondlgqdc0m4mfp7j5f0u.apps.googleusercontent.com',
+    iosBundleId: 'com.example.topicosProy',
   );
 }

@@ -4,7 +4,7 @@ import 'package:topicos_proy/src/pages/auth/register.dart';
 import 'package:topicos_proy/src/pages/auth/login.dart';
 import 'package:topicos_proy/src/pages/denuncias/detalle_reclamo.dart';
 import 'package:topicos_proy/src/pages/denuncias/lista_reclamos.dart';
-import 'package:topicos_proy/src/pages/denuncias/reclamos.dart';
+import 'package:topicos_proy/src/pages/denuncias/nuevo_reclamos.dart';
 import 'package:topicos_proy/src/pages/home.dart';
 import 'package:flutter/material.dart';
 import 'package:topicos_proy/src/pages/mapa/googlemap.dart';
@@ -18,7 +18,7 @@ class Routes {
     'register': (BuildContext context) => const Register(),
     'camara': (BuildContext context) => const CamaraApp(),
     'reclamo': (BuildContext context) => const Reclamo(),
-    'detalle_reclamo': (BuildContext context) => const DetalleReclamo(),
+    'detalle_reclamo': (BuildContext context) => DetalleReclamo(),
     'map': (BuildContext context) => const MapaGoogle(),
     'login_pin': (BuildContext context) => const LoginPin(),
     'profile': (BuildContext context) => const ProfileScreen(),
